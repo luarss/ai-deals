@@ -11,7 +11,7 @@ from pathlib import Path
 from src.insights import generate_insights
 from src.merger import merge_records
 from src.renderer import render
-from src.scorer import rank_models
+from src.scorer import annotate_sizes, rank_models
 from src.scraper import fetch_all_pages
 
 logging.basicConfig(
@@ -45,6 +45,7 @@ def main() -> None:
 
     # 3. Score & rank
     log.info("Step 3/5: Scoring and ranking")
+    annotate_sizes(merged)
     ranked = rank_models(merged)
     top_models = [m for m in ranked if m.composite_deal_score is not None]
     log.info(

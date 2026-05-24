@@ -29,6 +29,8 @@ class MergedModel(RawModelRecord):
     value_score: Optional[float] = None  # intelligence / blended_price
     coding_value: Optional[float] = None  # coding_index / blended_price
     composite_deal_score: Optional[float] = None  # normalised weighted composite
+    param_billions: Optional[float] = None  # parameter count parsed from name
+    size_tier: str = "frontier"  # nano | small | medium | large | frontier
 
     @model_validator(mode="after")
     def compute_raw_scores(self) -> "MergedModel":

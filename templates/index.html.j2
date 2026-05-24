@@ -25,6 +25,14 @@
     th.sort-asc::after  { content: ' ▲'; opacity: 1; }
     th.sort-desc::after { content: ' ▼'; opacity: 1; }
 
+    /* Size filter chips */
+    .tier-chip { cursor: pointer; transition: all 0.15s ease; }
+    .tier-chip.active { background-color: #4f46e5; border-color: #6366f1; color: #fff; }
+    .tier-chip:not(.active):hover { border-color: #6366f1; color: #a5b4fc; }
+
+    /* Hidden rows (filtered out) */
+    tr.tier-hidden { display: none; }
+
     /* Hero gradient animation */
     @keyframes gradientShift {
       0%   { background-position: 0% 50%; }
@@ -194,13 +202,46 @@
 
     <!-- ===== FULL MODEL TABLE ===== -->
     <section>
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <h2 class="text-base font-semibold">All Models</h2>
-        <p class="text-xs text-gray-500">Click column headers to sort</p>
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Size filter chips -->
+          <span class="text-xs text-gray-500 mr-1">Filter by size:</span>
+          <button class="tier-chip active text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-300"
+                  data-tier="all" onclick="setTierFilter(this)">
+            All <span class="tier-count ml-1 opacity-60"></span>
+          </button>
+          <button class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
+                  data-tier="frontier" onclick="setTierFilter(this)"
+                  title="Proprietary / closed-source models (GPT, Claude, Gemini…)">
+            Frontier <span class="tier-count ml-1 opacity-60"></span>
+          </button>
+          <button class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
+                  data-tier="large" onclick="setTierFilter(this)"
+                  title="Open-weight models ≥70B parameters">
+            Large 70B+ <span class="tier-count ml-1 opacity-60"></span>
+          </button>
+          <button class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
+                  data-tier="medium" onclick="setTierFilter(this)"
+                  title="Open-weight models 15–70B parameters">
+            Medium 15-70B <span class="tier-count ml-1 opacity-60"></span>
+          </button>
+          <button class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
+                  data-tier="small" onclick="setTierFilter(this)"
+                  title="Open-weight models 3–15B parameters">
+            Small 3-15B <span class="tier-count ml-1 opacity-60"></span>
+          </button>
+          <button class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
+                  data-tier="nano" onclick="setTierFilter(this)"
+                  title="Open-weight models &lt;3B parameters">
+            Nano &lt;3B <span class="tier-count ml-1 opacity-60"></span>
+          </button>
+        </div>
       </div>
+      <p class="text-xs text-gray-600 mb-2">Click column headers to sort · <span id="visible-count"></span></p>
 
       <!-- Mobile scroll hint -->
-      <p class="text-xs text-gray-600 mb-2 sm:hidden">← scroll horizontally →</p>
+      <p class="text-xs text-gray-600 mb-2 sm:hidden">← scroll →</p>
 
       <div class="overflow-x-auto rounded-xl border border-gray-800">
         <table id="model-table" class="w-full text-sm border-collapse">
@@ -226,7 +267,8 @@
                 data-coding="{{ model.coding_index if model.coding_index is not none else '' }}"
                 data-speed="{{ model.output_speed_tps if model.output_speed_tps is not none else '' }}"
                 data-ctx="{{ model.context_window_k if model.context_window_k is not none else '' }}"
-                data-deal="{{ model.composite_deal_score if model.composite_deal_score is not none else '' }}">
+                data-deal="{{ model.composite_deal_score if model.composite_deal_score is not none else '' }}"
+                data-tier="{{ model.size_tier }}">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 {% if loop.index <= 3 %}
                 <span class="text-indigo-400 mr-1.5 text-xs">#{{ loop.index }}</span>
@@ -284,34 +326,89 @@
     <p class="mt-1">Not affiliated with Artificial Analysis. Rankings are computed independently.</p>
   </footer>
 
-  <!-- ===== CLIENT-SIDE TABLE SORT ===== -->
+  <!-- ===== CLIENT-SIDE SORT + TIER FILTER ===== -->
   <script>
     (function () {
-      const table = document.getElementById('model-table');
-      const tbody = table.querySelector('tbody');
+      const table  = document.getElementById('model-table');
+      const tbody  = table.querySelector('tbody');
       let currentCol = 'deal';
-      let ascending = false;  // default: deal score descending
+      let ascending  = false;
+      let activeTier = 'all';
 
-      function cellValue(row, col) {
-        return row.dataset[col] || '';
+      // ── Helpers ──────────────────────────────────────────────────────────
+      function allRows() { return Array.from(tbody.querySelectorAll('tr')); }
+
+      function visibleRows() {
+        return allRows().filter(r => !r.classList.contains('tier-hidden'));
       }
 
-      function compare(a, b, col, type, asc) {
-        const va = cellValue(a, col);
-        const vb = cellValue(b, col);
+      // ── Tier filter ───────────────────────────────────────────────────────
+      function applyTierFilter() {
+        allRows().forEach(row => {
+          const tier = row.dataset.tier || 'frontier';
+          const hide = activeTier !== 'all' && tier !== activeTier;
+          row.classList.toggle('tier-hidden', hide);
+        });
+        updateVisibleCount();
+        updateRankBadges(visibleRows());
+      }
 
-        // Empty values always last
+      function updateVisibleCount() {
+        const n   = visibleRows().length;
+        const tot = allRows().length;
+        const el  = document.getElementById('visible-count');
+        if (el) el.textContent = activeTier === 'all'
+          ? `${tot} models`
+          : `${n} of ${tot} models`;
+      }
+
+      // Populate per-chip counts once on load
+      function populateCounts() {
+        const counts = {};
+        allRows().forEach(r => {
+          const t = r.dataset.tier || 'frontier';
+          counts[t] = (counts[t] || 0) + 1;
+        });
+        counts['all'] = allRows().length;
+        document.querySelectorAll('.tier-chip').forEach(chip => {
+          const t  = chip.dataset.tier;
+          const el = chip.querySelector('.tier-count');
+          if (el && counts[t] !== undefined) el.textContent = counts[t];
+        });
+      }
+
+      window.setTierFilter = function(btn) {
+        activeTier = btn.dataset.tier;
+        document.querySelectorAll('.tier-chip').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        applyTierFilter();
+      };
+
+      // ── Sort ──────────────────────────────────────────────────────────────
+      function compare(a, b, col, type, asc) {
+        const va = a.dataset[col] || '';
+        const vb = b.dataset[col] || '';
         if (va === '' && vb === '') return 0;
         if (va === '') return 1;
         if (vb === '') return -1;
-
-        let result;
-        if (type === 'number') {
-          result = parseFloat(va) - parseFloat(vb);
-        } else {
-          result = va.localeCompare(vb, undefined, { sensitivity: 'base' });
-        }
+        const result = type === 'number'
+          ? parseFloat(va) - parseFloat(vb)
+          : va.localeCompare(vb, undefined, { sensitivity: 'base' });
         return asc ? result : -result;
+      }
+
+      function updateRankBadges(rows) {
+        // Remove all existing badges first
+        tbody.querySelectorAll('span.rank-badge').forEach(b => b.remove());
+        // Re-add for top 3 visible rows
+        rows.slice(0, 3).forEach((row, idx) => {
+          const nameCell = row.querySelector('td:first-child');
+          if (!nameCell) return;
+          const badge = document.createElement('span');
+          badge.className = 'rank-badge text-indigo-400 mr-1.5 text-xs';
+          badge.textContent = `#${idx + 1}`;
+          nameCell.prepend(badge);
+        });
       }
 
       function sortTable(col, type) {
@@ -319,47 +416,33 @@
           ascending = !ascending;
         } else {
           currentCol = col;
-          // Numbers default descending (higher = better), strings ascending
           ascending = type === 'string';
         }
 
-        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const rows = allRows();
         rows.sort((a, b) => compare(a, b, col, type, ascending));
         rows.forEach(row => tbody.appendChild(row));
 
-        // Update rank badges for top 3
-        rows.forEach((row, idx) => {
-          const nameCell = row.querySelector('td:first-child');
-          const existingBadge = nameCell.querySelector('span.rank-badge');
-          if (existingBadge) existingBadge.remove();
-          if (idx < 3) {
-            const badge = document.createElement('span');
-            badge.className = 'rank-badge text-indigo-400 mr-1.5 text-xs';
-            badge.textContent = `#${idx + 1}`;
-            nameCell.prepend(badge);
-          }
-        });
+        updateRankBadges(visibleRows());
 
-        // Update header indicators
-        table.querySelectorAll('th.sortable').forEach(th => {
-          th.classList.remove('sort-asc', 'sort-desc');
-        });
+        table.querySelectorAll('th.sortable').forEach(th =>
+          th.classList.remove('sort-asc', 'sort-desc'));
         const activeHeader = table.querySelector(`th[data-col="${col}"]`);
-        if (activeHeader) {
+        if (activeHeader)
           activeHeader.classList.add(ascending ? 'sort-asc' : 'sort-desc');
-        }
       }
 
-      // Wire up header click events
       table.querySelectorAll('th.sortable').forEach(th => {
-        th.addEventListener('click', () => {
-          sortTable(th.dataset.col, th.dataset.type || 'string');
-        });
+        th.addEventListener('click', () =>
+          sortTable(th.dataset.col, th.dataset.type || 'string'));
       });
 
-      // Apply default sort on load (deal score descending)
+      // ── Init ─────────────────────────────────────────────────────────────
       const defaultHeader = table.querySelector('th[data-col="deal"]');
       if (defaultHeader) defaultHeader.classList.add('sort-desc');
+      populateCounts();
+      updateVisibleCount();
+      updateRankBadges(visibleRows());
     })();
   </script>
 

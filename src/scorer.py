@@ -7,6 +7,7 @@ Composite deal score: weighted sum of normalised components.
 from __future__ import annotations
 
 import logging
+import re
 
 from src.models import MergedModel
 
@@ -16,6 +17,31 @@ log = logging.getLogger(__name__)
 W_VALUE = 0.50
 W_CODING = 0.30
 W_SPEED = 0.20
+
+# Regex: match "70B", "0.8B", "397B A17B" (MoE — use total params), "27b" etc.
+_PARAM_RE = re.compile(r"(\d+(?:\.\d+)?)\s*[Bb](?:\b|$)")
+
+
+def _extract_param_billions(name: str) -> float | None:
+    """Parse the first (largest) parameter count from a model name."""
+    matches = _PARAM_RE.findall(name)
+    if not matches:
+        return None
+    # Take the largest number found (handles "397B A17B" → 397)
+    return max(float(m) for m in matches)
+
+
+def _size_tier(param_b: float | None) -> str:
+    """Map parameter count to a display tier string."""
+    if param_b is None:
+        return "frontier"   # proprietary / no size disclosed
+    if param_b < 3:
+        return "nano"       # <3B
+    if param_b < 15:
+        return "small"      # 3–15B
+    if param_b < 70:
+        return "medium"     # 15–70B
+    return "large"          # ≥70B
 
 
 def _safe_values(models: list[MergedModel], attr: str) -> list[float]:
@@ -31,6 +57,14 @@ def _normalise(value: float, vmin: float, vmax: float) -> float:
 
 def _build_range(values: list[float]) -> tuple[float, float]:
     return (min(values), max(values)) if values else (0.0, 1.0)
+
+
+def annotate_sizes(models: list[MergedModel]) -> None:
+    """Set param_billions and size_tier on every model (mutates in place)."""
+    for model in models:
+        pb = _extract_param_billions(model.name)
+        model.param_billions = pb
+        model.size_tier = _size_tier(pb)
 
 
 def rank_models(models: list[MergedModel]) -> list[MergedModel]:
