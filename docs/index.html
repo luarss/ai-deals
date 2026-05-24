@@ -25,6 +25,14 @@
     th.sort-asc::after  { content: ' ▲'; opacity: 1; }
     th.sort-desc::after { content: ' ▼'; opacity: 1; }
 
+    /* Size filter chips */
+    .tier-chip { cursor: pointer; transition: all 0.15s ease; }
+    .tier-chip.active { background-color: #4f46e5; border-color: #6366f1; color: #fff; }
+    .tier-chip:not(.active):hover { border-color: #6366f1; color: #a5b4fc; }
+
+    /* Hidden rows (filtered out) */
+    tr.tier-hidden { display: none; }
+
     /* Hero gradient animation */
     @keyframes gradientShift {
       0%   { background-position: 0% 50%; }
@@ -248,31 +256,64 @@
       <div class="text-gray-300 leading-relaxed text-sm space-y-4">
         
         
-        <p>The single best deal in the current market is the Qwen3.5 0.8B model, which achieves a value score of 1100.0 by delivering an intelligence rating of 11.0 out of 60 at a blended price of just $0.0100 per million tokens. This model offers a 262K context window, making it exceptionally cost-effective for high-volume, low-complexity tasks such as basic classification, simple extraction, or lightweight chat. Its price-to-performance ratio is unmatched, providing usable capability for less than one cent per million tokens, which is critical for applications where latency and cost dominate over deep reasoning.</p>
+        <p>The single best deal is the Qwen3.5 0.8B model, which achieves a value score of 1100.0 by delivering an intelligence rating of 11.0 out of 60 at a blended price of just $0.0100 per million tokens. This model also supports a 262K context window, making it exceptionally cost-effective for simple, high-volume tasks where minimal reasoning is required. Its price-to-intelligence ratio is unmatched, offering the lowest cost per unit of capability among all evaluated models.</p>
         
         
         
-        <p>Notable runners-up include the DeepSeek V4 Flash (Max) and the MiMo-V2-Flash (Feb 2026). DeepSeek V4 Flash (Max) scores 783.3 in value with an intelligence of 47.0/60, a price of $0.0600 per million tokens, and a massive 1000K context window, making it ideal for long-document analysis or tasks requiring high reasoning at moderate cost. Its trade-off is higher price per token compared to the Qwen3.5 0.8B, but it offers over four times the intelligence. MiMo-V2-Flash delivers 41.0/60 intelligence at the same $0.0600 price with 133 tokens per second speed, balancing capability and throughput for general-purpose use. The Qwen3.5 4B variant (27.0/60 intelligence, $0.0400 per million tokens) also stands out for its speed of 169 tokens per second, suitable for latency-sensitive applications.</p>
+        <p>Notable runners-up include the DeepSeek V4 Flash (Max), which provides a far higher intelligence of 47.0/60 for $0.0600 per million tokens, yielding a value score of 783.3. It also offers a massive 1000K context window and a speed of 113 tokens per second, making it ideal for complex, long-context tasks at a still-low price. The MiMo-V2-Flash (Feb 2026) is another strong contender, with intelligence of 41.0/60 at the same $0.0600 price, a value score of 683.3, and faster speed at 133 tokens per second, but its context is limited to 256K. The Qwen3.5 4B variant (intelligence 27.0/60, $0.0400/1M) offers a balanced trade-off with a value score of 675.0 and high speed of 169 tokens per second, suitable for mid-range tasks.</p>
         
         
         
-        <p>For the most common use case—cost-sensitive API calls in production—the actionable recommendation is to deploy the Qwen3.5 0.8B model for all tasks that do not require high reasoning, such as simple classification, keyword extraction, or basic customer support triage. Reserve the DeepSeek V4 Flash (Max) for complex reasoning tasks or long-context processing where the higher intelligence and 1000K context justify the sixfold price increase. This tiered approach minimizes average cost per query while maintaining quality for demanding workloads.</p>
+        <p>For the most common use case—cost-sensitive API use in production—choose the Qwen3.5 0.8B for any task that does not require complex reasoning, such as simple classification, extraction, or high-throughput logging. Its $0.01 per million tokens and 262K context make it the cheapest option by far, allowing you to process massive volumes without budget strain. Reserve the DeepSeek V4 Flash (Max) for the minority of tasks that demand deeper understanding or very long documents, accepting its sixfold higher cost for a fourfold intelligence gain.</p>
         
         
       </div>
-      <p class="mt-5 text-xs text-gray-600">Generated 2026-05-24 10:15 UTC · Data: artificialanalysis.ai</p>
+      <p class="mt-5 text-xs text-gray-600">Generated 2026-05-24 10:26 UTC · Data: artificialanalysis.ai</p>
     </section>
     
 
     <!-- ===== FULL MODEL TABLE ===== -->
     <section>
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <h2 class="text-base font-semibold">All Models</h2>
-        <p class="text-xs text-gray-500">Click column headers to sort</p>
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- Size filter chips -->
+          <span class="text-xs text-gray-500 mr-1">Filter by size:</span>
+          <button class="tier-chip active text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-300"
+                  data-tier="all" onclick="setTierFilter(this)">
+            All <span class="tier-count ml-1 opacity-60"></span>
+          </button>
+          <button class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
+                  data-tier="frontier" onclick="setTierFilter(this)"
+                  title="Proprietary / closed-source models (GPT, Claude, Gemini…)">
+            Frontier <span class="tier-count ml-1 opacity-60"></span>
+          </button>
+          <button class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
+                  data-tier="large" onclick="setTierFilter(this)"
+                  title="Open-weight models ≥70B parameters">
+            Large 70B+ <span class="tier-count ml-1 opacity-60"></span>
+          </button>
+          <button class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
+                  data-tier="medium" onclick="setTierFilter(this)"
+                  title="Open-weight models 15–70B parameters">
+            Medium 15-70B <span class="tier-count ml-1 opacity-60"></span>
+          </button>
+          <button class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
+                  data-tier="small" onclick="setTierFilter(this)"
+                  title="Open-weight models 3–15B parameters">
+            Small 3-15B <span class="tier-count ml-1 opacity-60"></span>
+          </button>
+          <button class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
+                  data-tier="nano" onclick="setTierFilter(this)"
+                  title="Open-weight models &lt;3B parameters">
+            Nano &lt;3B <span class="tier-count ml-1 opacity-60"></span>
+          </button>
+        </div>
       </div>
+      <p class="text-xs text-gray-600 mb-2">Click column headers to sort · <span id="visible-count"></span></p>
 
       <!-- Mobile scroll hint -->
-      <p class="text-xs text-gray-600 mb-2 sm:hidden">← scroll horizontally →</p>
+      <p class="text-xs text-gray-600 mb-2 sm:hidden">← scroll →</p>
 
       <div class="overflow-x-auto rounded-xl border border-gray-800">
         <table id="model-table" class="w-full text-sm border-collapse">
@@ -298,7 +339,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="262"
-                data-deal="1.0">
+                data-deal="1.0"
+                data-tier="nano">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 <span class="text-indigo-400 mr-1.5 text-xs">#1</span>
@@ -335,7 +377,8 @@
                 data-coding=""
                 data-speed="83.0"
                 data-ctx="262"
-                data-deal="0.7422">
+                data-deal="0.7422"
+                data-tier="nano">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 <span class="text-indigo-400 mr-1.5 text-xs">#2</span>
@@ -372,7 +415,8 @@
                 data-coding=""
                 data-speed="113.0"
                 data-ctx="1000"
-                data-deal="0.5908">
+                data-deal="0.5908"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 <span class="text-indigo-400 mr-1.5 text-xs">#3</span>
@@ -409,7 +453,8 @@
                 data-coding=""
                 data-speed="169.0"
                 data-ctx="262"
-                data-deal="0.5244">
+                data-deal="0.5244"
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.5 4B
@@ -444,7 +489,8 @@
                 data-coding=""
                 data-speed="133.0"
                 data-ctx="256"
-                data-deal="0.5223">
+                data-deal="0.5223"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 MiMo-V2-Flash (Feb 2026)
@@ -479,7 +525,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="1000"
-                data-deal="0.521">
+                data-deal="0.521"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 DeepSeek V4 Flash (High)
@@ -514,7 +561,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="262"
-                data-deal="0.483">
+                data-deal="0.483"
+                data-tier="nano">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.5 2B
@@ -549,7 +597,8 @@
                 data-coding=""
                 data-speed="120.0"
                 data-ctx="1000"
-                data-deal="0.4586">
+                data-deal="0.4586"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 DeepSeek V4 Flash
@@ -584,7 +633,8 @@
                 data-coding=""
                 data-speed="178.0"
                 data-ctx="262"
-                data-deal="0.4534">
+                data-deal="0.4534"
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.5 4B
@@ -619,7 +669,8 @@
                 data-coding=""
                 data-speed="322.0"
                 data-ctx="262"
-                data-deal="0.4313">
+                data-deal="0.4313"
+                data-tier="nano">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.5 2B
@@ -654,7 +705,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="262"
-                data-deal="0.3917">
+                data-deal="0.3917"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Ling 2.6 Flash
@@ -688,7 +740,8 @@
                 data-coding=""
                 data-speed="900.0"
                 data-ctx="128"
-                data-deal="0.3691">
+                data-deal="0.3691"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Mercury 2
@@ -722,7 +775,8 @@
                 data-coding=""
                 data-speed="243.0"
                 data-ctx="131"
-                data-deal="0.2987">
+                data-deal="0.2987"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 gpt-oss-20B (high)
@@ -756,7 +810,8 @@
                 data-coding=""
                 data-speed="265.0"
                 data-ctx="130"
-                data-deal="0.2967">
+                data-deal="0.2967"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Nova Micro
@@ -790,7 +845,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="1000"
-                data-deal="0.2831">
+                data-deal="0.2831"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemini 2.5 Flash-Lite (Sep)
@@ -824,7 +880,8 @@
                 data-coding=""
                 data-speed="150.0"
                 data-ctx="1000"
-                data-deal="0.2777">
+                data-deal="0.2777"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 NVIDIA Nemotron 3 Nano
@@ -858,7 +915,8 @@
                 data-coding=""
                 data-speed="240.0"
                 data-ctx="131"
-                data-deal="0.2667">
+                data-deal="0.2667"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 gpt-oss-20B (low)
@@ -892,7 +950,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="1000"
-                data-deal="0.244">
+                data-deal="0.244"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemini 2.5 Flash-Lite (Sep)
@@ -926,7 +985,8 @@
                 data-coding=""
                 data-speed="119.0"
                 data-ctx="131"
-                data-deal="0.2394">
+                data-deal="0.2394"
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 NVIDIA Nemotron Nano 9B V2
@@ -960,7 +1020,8 @@
                 data-coding=""
                 data-speed="93.0"
                 data-ctx="256"
-                data-deal="0.2335">
+                data-deal="0.2335"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Hy3-preview
@@ -994,7 +1055,8 @@
                 data-coding=""
                 data-speed="234.0"
                 data-ctx="32"
-                data-deal="0.2289">
+                data-deal="0.2289"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 LFM2 24B A2B
@@ -1028,7 +1090,8 @@
                 data-coding=""
                 data-speed="47.0"
                 data-ctx="262"
-                data-deal="0.2164">
+                data-deal="0.2164"
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.5 9B
@@ -1062,7 +1125,8 @@
                 data-coding=""
                 data-speed="304.0"
                 data-ctx="256"
-                data-deal="0.2155">
+                data-deal="0.2155"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Nemotron 3 Nano Omni 30B A3B Reasoning
@@ -1096,7 +1160,8 @@
                 data-coding=""
                 data-speed="40.0"
                 data-ctx="1000"
-                data-deal="0.2134">
+                data-deal="0.2134"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 DeepSeek V4 Pro (Max)
@@ -1130,7 +1195,8 @@
                 data-coding=""
                 data-speed="159.0"
                 data-ctx="400"
-                data-deal="0.2079">
+                data-deal="0.2079"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GPT-5.4 nano (xhigh)
@@ -1164,7 +1230,8 @@
                 data-coding=""
                 data-speed="41.0"
                 data-ctx="1000"
-                data-deal="0.2055">
+                data-deal="0.2055"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 DeepSeek V4 Pro (High)
@@ -1198,7 +1265,8 @@
                 data-coding=""
                 data-speed="127.0"
                 data-ctx="256"
-                data-deal="0.2047">
+                data-deal="0.2047"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 MiMo-V2-Flash
@@ -1232,7 +1300,8 @@
                 data-coding=""
                 data-speed="195.0"
                 data-ctx="192"
-                data-deal="0.2025">
+                data-deal="0.2025"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Command A+
@@ -1265,7 +1334,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="256"
-                data-deal="0.1984">
+                data-deal="0.1984"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemma 4 26B A4B
@@ -1299,7 +1369,8 @@
                 data-coding=""
                 data-speed="84.0"
                 data-ctx="256"
-                data-deal="0.1897">
+                data-deal="0.1897"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Hy3-preview
@@ -1333,7 +1404,8 @@
                 data-coding=""
                 data-speed="327.0"
                 data-ctx="131"
-                data-deal="0.1879">
+                data-deal="0.1879"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 gpt-oss-120b (high)
@@ -1367,7 +1439,8 @@
                 data-coding=""
                 data-speed="147.0"
                 data-ctx="131"
-                data-deal="0.1849">
+                data-deal="0.1849"
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 NVIDIA Nemotron Nano 9B V2
@@ -1401,7 +1474,8 @@
                 data-coding=""
                 data-speed="159.0"
                 data-ctx="400"
-                data-deal="0.1835">
+                data-deal="0.1835"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GPT-5.4 nano
@@ -1435,7 +1509,8 @@
                 data-coding=""
                 data-speed="178.0"
                 data-ctx="65"
-                data-deal="0.1833">
+                data-deal="0.1833"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Sarvam 30B (high)
@@ -1468,7 +1543,8 @@
                 data-coding=""
                 data-speed="334.0"
                 data-ctx="1000"
-                data-deal="0.1818">
+                data-deal="0.1818"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemini 3.1 Flash-Lite Preview
@@ -1502,7 +1578,8 @@
                 data-coding=""
                 data-speed="368.0"
                 data-ctx="128"
-                data-deal="0.1771">
+                data-deal="0.1771"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Granite 4.0 H Small
@@ -1536,7 +1613,8 @@
                 data-coding=""
                 data-speed="55.0"
                 data-ctx="205"
-                data-deal="0.1718">
+                data-deal="0.1718"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 MiniMax-M2.7
@@ -1570,7 +1648,8 @@
                 data-coding=""
                 data-speed="125.0"
                 data-ctx="131"
-                data-deal="0.1677">
+                data-deal="0.1677"
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Granite 4.1 8B
@@ -1604,7 +1683,8 @@
                 data-coding=""
                 data-speed="163.0"
                 data-ctx="256"
-                data-deal="0.1663">
+                data-deal="0.1663"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Step 3.5 Flash 2603
@@ -1637,7 +1717,8 @@
                 data-coding=""
                 data-speed="259.0"
                 data-ctx="256"
-                data-deal="0.1637">
+                data-deal="0.1637"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.5 Omni Flash
@@ -1671,7 +1752,8 @@
                 data-coding=""
                 data-speed="38.0"
                 data-ctx="1000"
-                data-deal="0.1602">
+                data-deal="0.1602"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 DeepSeek V4 Pro
@@ -1705,7 +1787,8 @@
                 data-coding=""
                 data-speed="343.0"
                 data-ctx="131"
-                data-deal="0.1587">
+                data-deal="0.1587"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 gpt-oss-120b (low)
@@ -1739,7 +1822,8 @@
                 data-coding=""
                 data-speed="67.0"
                 data-ctx="1000"
-                data-deal="0.1546">
+                data-deal="0.1546"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Grok 3 mini Reasoning (high)
@@ -1773,7 +1857,8 @@
                 data-coding=""
                 data-speed="91.0"
                 data-ctx="1000"
-                data-deal="0.1496">
+                data-deal="0.1496"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 NVIDIA Nemotron 3 Nano
@@ -1807,7 +1892,8 @@
                 data-coding=""
                 data-speed="142.0"
                 data-ctx="1000"
-                data-deal="0.1425">
+                data-deal="0.1425"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Nova 2.0 Lite (high)
@@ -1840,7 +1926,8 @@
                 data-coding=""
                 data-speed="94.0"
                 data-ctx="256"
-                data-deal="0.1379">
+                data-deal="0.1379"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemma 4 26B A4B
@@ -1874,7 +1961,8 @@
                 data-coding=""
                 data-speed="24.0"
                 data-ctx="256"
-                data-deal="0.1363">
+                data-deal="0.1363"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemma 4 31B
@@ -1908,7 +1996,8 @@
                 data-coding=""
                 data-speed="159.0"
                 data-ctx="256"
-                data-deal="0.1316">
+                data-deal="0.1316"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Mistral Small 4
@@ -1942,7 +2031,8 @@
                 data-coding=""
                 data-speed="159.0"
                 data-ctx="400"
-                data-deal="0.1268">
+                data-deal="0.1268"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GPT-5.4 nano
@@ -1976,7 +2066,8 @@
                 data-coding=""
                 data-speed="164.0"
                 data-ctx="1000"
-                data-deal="0.1244">
+                data-deal="0.1244"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 NVIDIA Nemotron 3 Super
@@ -2010,7 +2101,8 @@
                 data-coding=""
                 data-speed="141.0"
                 data-ctx="512"
-                data-deal="0.1227">
+                data-deal="0.1227"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Trinity Large Thinking
@@ -2044,7 +2136,8 @@
                 data-coding=""
                 data-speed="179.0"
                 data-ctx="262"
-                data-deal="0.1188">
+                data-deal="0.1188"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.6 35B A3B
@@ -2078,7 +2171,8 @@
                 data-coding=""
                 data-speed="197.0"
                 data-ctx="256"
-                data-deal="0.1183">
+                data-deal="0.1183"
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Ministral 3 3B
@@ -2112,7 +2206,8 @@
                 data-coding=""
                 data-speed="103.0"
                 data-ctx="256"
-                data-deal="0.1134">
+                data-deal="0.1134"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 MiMo-V2-Omni-0327
@@ -2146,7 +2241,8 @@
                 data-coding=""
                 data-speed="48.0"
                 data-ctx="128"
-                data-deal="0.111">
+                data-deal="0.111"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Llama Nemotron Super 49B v1.5
@@ -2180,7 +2276,8 @@
                 data-coding=""
                 data-speed="114.0"
                 data-ctx="128"
-                data-deal="0.1109">
+                data-deal="0.1109"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Sarvam 105B (high)
@@ -2213,7 +2310,8 @@
                 data-coding=""
                 data-speed="97.0"
                 data-ctx="1000"
-                data-deal="0.1071">
+                data-deal="0.1071"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 MiMo-V2.5
@@ -2247,7 +2345,8 @@
                 data-coding=""
                 data-speed="151.0"
                 data-ctx="256"
-                data-deal="0.097">
+                data-deal="0.097"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Mistral Small 4
@@ -2281,7 +2380,8 @@
                 data-coding=""
                 data-speed="100.0"
                 data-ctx="256"
-                data-deal="0.095">
+                data-deal="0.095"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 MiMo-V2-Omni
@@ -2314,7 +2414,8 @@
                 data-coding=""
                 data-speed="171.0"
                 data-ctx="1000"
-                data-deal="0.0916">
+                data-deal="0.0916"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemini 3 Flash
@@ -2348,7 +2449,8 @@
                 data-coding=""
                 data-speed="53.0"
                 data-ctx="1000"
-                data-deal="0.0903">
+                data-deal="0.0903"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.6 Plus
@@ -2382,7 +2484,8 @@
                 data-coding=""
                 data-speed="102.0"
                 data-ctx="256"
-                data-deal="0.0895">
+                data-deal="0.0895"
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Ministral 3 8B
@@ -2416,7 +2519,8 @@
                 data-coding=""
                 data-speed="49.0"
                 data-ctx="128"
-                data-deal="0.0888">
+                data-deal="0.0888"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Llama Nemotron Super 49B v1.5
@@ -2450,7 +2554,8 @@
                 data-coding=""
                 data-speed="173.0"
                 data-ctx="262"
-                data-deal="0.0865">
+                data-deal="0.0865"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.5 35B A3B
@@ -2484,7 +2589,8 @@
                 data-coding=""
                 data-speed="161.0"
                 data-ctx="400"
-                data-deal="0.0849">
+                data-deal="0.0849"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GPT-5.4 mini (xhigh)
@@ -2518,7 +2624,8 @@
                 data-coding=""
                 data-speed="91.0"
                 data-ctx="256"
-                data-deal="0.0848">
+                data-deal="0.0848"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 LongCat Flash Lite
@@ -2551,7 +2658,8 @@
                 data-coding=""
                 data-speed="118.0"
                 data-ctx="1000"
-                data-deal="0.0806">
+                data-deal="0.0806"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Grok 4.3 (high)
@@ -2585,7 +2693,8 @@
                 data-coding=""
                 data-speed="241.0"
                 data-ctx="128"
-                data-deal="0.0784">
+                data-deal="0.0784"
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 NVIDIA Nemotron Nano 12B v2 VL
@@ -2619,7 +2728,8 @@
                 data-coding=""
                 data-speed="79.0"
                 data-ctx="128"
-                data-deal="0.0762">
+                data-deal="0.0762"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Ling-flash-2.0
@@ -2653,7 +2763,8 @@
                 data-coding=""
                 data-speed="176.0"
                 data-ctx="262"
-                data-deal="0.075">
+                data-deal="0.075"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.6 35B A3B
@@ -2687,7 +2798,8 @@
                 data-coding=""
                 data-speed="221.0"
                 data-ctx="1000"
-                data-deal="0.0741">
+                data-deal="0.0741"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemini 3.5 Flash
@@ -2721,7 +2833,8 @@
                 data-coding=""
                 data-speed="161.0"
                 data-ctx="400"
-                data-deal="0.0726">
+                data-deal="0.0726"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GPT-5.4 mini (medium)
@@ -2755,7 +2868,8 @@
                 data-coding=""
                 data-speed="138.0"
                 data-ctx="256"
-                data-deal="0.0722">
+                data-deal="0.0722"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3 Coder Next
@@ -2789,7 +2903,8 @@
                 data-coding=""
                 data-speed="96.0"
                 data-ctx="1000"
-                data-deal="0.0711">
+                data-deal="0.0711"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Grok 4.3 (medium)
@@ -2823,7 +2938,8 @@
                 data-coding=""
                 data-speed="137.0"
                 data-ctx="262"
-                data-deal="0.0695">
+                data-deal="0.0695"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.5 122B A10B
@@ -2857,7 +2973,8 @@
                 data-coding=""
                 data-speed="75.0"
                 data-ctx="256"
-                data-deal="0.0688">
+                data-deal="0.0688"
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Ministral 3 14B
@@ -2891,7 +3008,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="0.0673">
+                data-deal="0.0673"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Ring-flash-2.0
@@ -2925,7 +3043,8 @@
                 data-coding=""
                 data-speed="291.0"
                 data-ctx="128"
-                data-deal="0.0672">
+                data-deal="0.0672"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Llama 3.1 Nemotron 70B
@@ -2958,7 +3077,8 @@
                 data-coding=""
                 data-speed="197.0"
                 data-ctx="1000"
-                data-deal="0.0671">
+                data-deal="0.0671"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.7 Max
@@ -2992,7 +3112,8 @@
                 data-coding=""
                 data-speed="135.0"
                 data-ctx="1000"
-                data-deal="0.0661">
+                data-deal="0.0661"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Nova 2.0 Lite (medium)
@@ -3026,7 +3147,8 @@
                 data-coding=""
                 data-speed="73.0"
                 data-ctx="200"
-                data-deal="0.0653">
+                data-deal="0.0653"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GLM-5
@@ -3060,7 +3182,8 @@
                 data-coding=""
                 data-speed="144.0"
                 data-ctx="262"
-                data-deal="0.0647">
+                data-deal="0.0647"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.5 122B A10B
@@ -3094,7 +3217,8 @@
                 data-coding=""
                 data-speed="107.0"
                 data-ctx="10000"
-                data-deal="0.0641">
+                data-deal="0.0641"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Llama 4 Scout
@@ -3128,7 +3252,8 @@
                 data-coding=""
                 data-speed="61.0"
                 data-ctx="256"
-                data-deal="0.0636">
+                data-deal="0.0636"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Kimi K2.6
@@ -3162,7 +3287,8 @@
                 data-coding=""
                 data-speed="204.0"
                 data-ctx="1000"
-                data-deal="0.0636">
+                data-deal="0.0636"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemini 3.5 Flash (minimal)
@@ -3196,7 +3322,8 @@
                 data-coding=""
                 data-speed="155.0"
                 data-ctx="1000"
-                data-deal="0.0636">
+                data-deal="0.0636"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Nova 2.0 Lite (low)
@@ -3230,7 +3357,8 @@
                 data-coding=""
                 data-speed="62.0"
                 data-ctx="1000"
-                data-deal="0.063">
+                data-deal="0.063"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 MiMo-V2.5-Pro
@@ -3264,7 +3392,8 @@
                 data-coding=""
                 data-speed="83.0"
                 data-ctx="1000"
-                data-deal="0.0624">
+                data-deal="0.0624"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Grok 4.3 (low)
@@ -3298,7 +3427,8 @@
                 data-coding=""
                 data-speed="103.0"
                 data-ctx="256"
-                data-deal="0.0616">
+                data-deal="0.0616"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Kimi K2.6
@@ -3332,7 +3462,8 @@
                 data-coding=""
                 data-speed="168.0"
                 data-ctx="400"
-                data-deal="0.0573">
+                data-deal="0.0573"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GPT-5.4 mini
@@ -3366,7 +3497,8 @@
                 data-coding=""
                 data-speed="110.0"
                 data-ctx="1000"
-                data-deal="0.057">
+                data-deal="0.057"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Llama 4 Maverick
@@ -3400,7 +3532,8 @@
                 data-coding=""
                 data-speed="34.0"
                 data-ctx="256"
-                data-deal="0.0563">
+                data-deal="0.0563"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Kimi K2.5
@@ -3434,7 +3567,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="262"
-                data-deal="0.056">
+                data-deal="0.056"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Ling-2.6-1T
@@ -3468,7 +3602,8 @@
                 data-coding=""
                 data-speed="164.0"
                 data-ctx="1000"
-                data-deal="0.0558">
+                data-deal="0.0558"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Nova 2.0 Lite
@@ -3502,7 +3637,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="0.0534">
+                data-deal="0.0534"
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 NVIDIA Nemotron Nano 12B v2 VL
@@ -3536,7 +3672,8 @@
                 data-coding=""
                 data-speed="103.0"
                 data-ctx="1000"
-                data-deal="0.0521">
+                data-deal="0.0521"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Grok 4.3
@@ -3570,7 +3707,8 @@
                 data-coding=""
                 data-speed="58.0"
                 data-ctx="200"
-                data-deal="0.0519">
+                data-deal="0.0519"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GLM-5
@@ -3604,7 +3742,8 @@
                 data-coding=""
                 data-speed="156.0"
                 data-ctx="262"
-                data-deal="0.0512">
+                data-deal="0.0512"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3 Next 80B A3B
@@ -3638,7 +3777,8 @@
                 data-coding=""
                 data-speed="88.0"
                 data-ctx="65"
-                data-deal="0.0499">
+                data-deal="0.0499"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3 Omni 30B A3B
@@ -3672,7 +3812,8 @@
                 data-coding=""
                 data-speed="64.0"
                 data-ctx="200"
-                data-deal="0.0493">
+                data-deal="0.0493"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GLM-5.1
@@ -3706,7 +3847,8 @@
                 data-coding=""
                 data-speed="59.0"
                 data-ctx="256"
-                data-deal="0.0486">
+                data-deal="0.0486"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Devstral 2
@@ -3739,7 +3881,8 @@
                 data-coding=""
                 data-speed="59.0"
                 data-ctx="128"
-                data-deal="0.0486">
+                data-deal="0.0486"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Llama 3.2 90B (Vision)
@@ -3772,7 +3915,8 @@
                 data-coding=""
                 data-speed="160.0"
                 data-ctx="262"
-                data-deal="0.0484">
+                data-deal="0.0484"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3 Next 80B A3B
@@ -3805,7 +3949,8 @@
                 data-coding=""
                 data-speed="136.0"
                 data-ctx="1000"
-                data-deal="0.0481">
+                data-deal="0.0481"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemini 3.1 Pro Preview
@@ -3839,7 +3984,8 @@
                 data-coding=""
                 data-speed="95.0"
                 data-ctx="200"
-                data-deal="0.0479">
+                data-deal="0.0479"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Claude 4.5 Haiku
@@ -3873,7 +4019,8 @@
                 data-coding=""
                 data-speed="58.0"
                 data-ctx="256"
-                data-deal="0.0475">
+                data-deal="0.0475"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Devstral Small 2
@@ -3906,7 +4053,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="65"
-                data-deal="0.0461">
+                data-deal="0.0461"
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Apertus 8B Instruct
@@ -3940,7 +4088,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="1000"
-                data-deal="0.0455">
+                data-deal="0.0455"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Nova 2.0 Omni (medium)
@@ -3974,7 +4123,8 @@
                 data-coding=""
                 data-speed="64.0"
                 data-ctx="262"
-                data-deal="0.0452">
+                data-deal="0.0452"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.6 27B
@@ -4008,7 +4158,8 @@
                 data-coding=""
                 data-speed="64.0"
                 data-ctx="1000"
-                data-deal="0.045">
+                data-deal="0.045"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 MiMo-V2.5-Pro
@@ -4042,7 +4193,8 @@
                 data-coding=""
                 data-speed="138.0"
                 data-ctx="1000"
-                data-deal="0.0437">
+                data-deal="0.0437"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemini 2.5 Pro
@@ -4075,7 +4227,8 @@
                 data-coding=""
                 data-speed="16.0"
                 data-ctx="16"
-                data-deal="0.0427">
+                data-deal="0.0427"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Phi-4
@@ -4109,7 +4262,8 @@
                 data-coding=""
                 data-speed="53.0"
                 data-ctx="262"
-                data-deal="0.0419">
+                data-deal="0.0419"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.5 397B A17B
@@ -4143,7 +4297,8 @@
                 data-coding=""
                 data-speed="91.0"
                 data-ctx="200"
-                data-deal="0.0416">
+                data-deal="0.0416"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Claude 4.5 Haiku
@@ -4177,7 +4332,8 @@
                 data-coding=""
                 data-speed="132.0"
                 data-ctx="256"
-                data-deal="0.0412">
+                data-deal="0.0412"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Nova 2.0 Pro Preview (medium)
@@ -4210,7 +4366,8 @@
                 data-coding=""
                 data-speed="96.0"
                 data-ctx="65"
-                data-deal="0.0403">
+                data-deal="0.0403"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3 Omni 30B A3B
@@ -4244,7 +4401,8 @@
                 data-coding=""
                 data-speed="49.0"
                 data-ctx="200"
-                data-deal="0.0402">
+                data-deal="0.0402"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GLM-5.1
@@ -4278,7 +4436,8 @@
                 data-coding=""
                 data-speed="53.0"
                 data-ctx="256"
-                data-deal="0.0393">
+                data-deal="0.0393"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.5 Omni Plus
@@ -4312,7 +4471,8 @@
                 data-coding=""
                 data-speed="106.0"
                 data-ctx="128"
-                data-deal="0.0393">
+                data-deal="0.0393"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Magistral Small 1.2
@@ -4345,7 +4505,8 @@
                 data-coding=""
                 data-speed="53.0"
                 data-ctx="262"
-                data-deal="0.0379">
+                data-deal="0.0379"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.5 397B A17B
@@ -4379,7 +4540,8 @@
                 data-coding=""
                 data-speed="64.0"
                 data-ctx="262"
-                data-deal="0.0379">
+                data-deal="0.0379"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.6 27B
@@ -4413,7 +4575,8 @@
                 data-coding=""
                 data-speed="136.0"
                 data-ctx="256"
-                data-deal="0.0378">
+                data-deal="0.0378"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Mistral Medium 3.5
@@ -4446,7 +4609,8 @@
                 data-coding=""
                 data-speed="112.0"
                 data-ctx="2000"
-                data-deal="0.0374">
+                data-deal="0.0374"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Grok 4.20 0309 v2
@@ -4479,7 +4643,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="1000"
-                data-deal="0.0367">
+                data-deal="0.0367"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Nova 2.0 Omni (low)
@@ -4513,7 +4678,8 @@
                 data-coding=""
                 data-speed="105.0"
                 data-ctx="200"
-                data-deal="0.0351">
+                data-deal="0.0351"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 o3
@@ -4546,7 +4712,8 @@
                 data-coding=""
                 data-speed="132.0"
                 data-ctx="256"
-                data-deal="0.0343">
+                data-deal="0.0343"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Nova 2.0 Pro Preview (low)
@@ -4579,7 +4746,8 @@
                 data-coding=""
                 data-speed="45.0"
                 data-ctx="128"
-                data-deal="0.0328">
+                data-deal="0.0328"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 DeepSeek R1 Distill Llama 70B
@@ -4612,7 +4780,8 @@
                 data-coding=""
                 data-speed="49.0"
                 data-ctx="256"
-                data-deal="0.0325">
+                data-deal="0.0325"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Mistral Large 3
@@ -4646,7 +4815,8 @@
                 data-coding=""
                 data-speed="78.0"
                 data-ctx="400"
-                data-deal="0.0322">
+                data-deal="0.0322"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GPT-5.3 Codex (xhigh)
@@ -4679,7 +4849,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="0.0314">
+                data-deal="0.0314"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Reka Flash 3
@@ -4713,7 +4884,8 @@
                 data-coding=""
                 data-speed="50.0"
                 data-ctx="128"
-                data-deal="0.031">
+                data-deal="0.031"
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Llama 3.2 11B (Vision)
@@ -4747,7 +4919,8 @@
                 data-coding=""
                 data-speed="25.0"
                 data-ctx="131"
-                data-deal="0.0295">
+                data-deal="0.0295"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 ERNIE 4.5 300B A47B
@@ -4781,7 +4954,8 @@
                 data-coding=""
                 data-speed="121.0"
                 data-ctx="256"
-                data-deal="0.0287">
+                data-deal="0.0287"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Nova 2.0 Pro Preview
@@ -4814,7 +4988,8 @@
                 data-coding=""
                 data-speed="77.0"
                 data-ctx="128"
-                data-deal="0.0279">
+                data-deal="0.0279"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Llama 3.3 70B
@@ -4847,7 +5022,8 @@
                 data-coding=""
                 data-speed="77.0"
                 data-ctx="1050"
-                data-deal="0.027">
+                data-deal="0.027"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GPT-5.4 (low)
@@ -4880,7 +5056,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="1000"
-                data-deal="0.0262">
+                data-deal="0.0262"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Nova 2.0 Omni
@@ -4914,7 +5091,8 @@
                 data-coding=""
                 data-speed="36.0"
                 data-ctx="256"
-                data-deal="0.0226">
+                data-deal="0.0226"
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemma 4 31B
@@ -4947,7 +5125,8 @@
                 data-coding=""
                 data-speed="75.0"
                 data-ctx="1050"
-                data-deal="0.0222">
+                data-deal="0.0222"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GPT-5.4 (Non-reasoning)
@@ -4980,7 +5159,8 @@
                 data-coding=""
                 data-speed="54.0"
                 data-ctx="1000"
-                data-deal="0.0211">
+                data-deal="0.0211"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Claude Sonnet 4.6 (max)
@@ -5013,7 +5193,8 @@
                 data-coding=""
                 data-speed="52.0"
                 data-ctx="128"
-                data-deal="0.0204">
+                data-deal="0.0204"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Llama Nemotron Ultra
@@ -5046,7 +5227,8 @@
                 data-coding=""
                 data-speed="72.0"
                 data-ctx="922"
-                data-deal="0.0198">
+                data-deal="0.0198"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GPT-5.5 (xhigh)
@@ -5079,7 +5261,8 @@
                 data-coding=""
                 data-speed="68.0"
                 data-ctx="922"
-                data-deal="0.0187">
+                data-deal="0.0187"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GPT-5.5 (high)
@@ -5112,7 +5295,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="1000"
-                data-deal="0.0178">
+                data-deal="0.0178"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemini 3 Pro Preview (low)
@@ -5145,7 +5329,8 @@
                 data-coding=""
                 data-speed="68.0"
                 data-ctx="922"
-                data-deal="0.0174">
+                data-deal="0.0174"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GPT-5.5 (low)
@@ -5178,7 +5363,8 @@
                 data-coding=""
                 data-speed="63.0"
                 data-ctx="922"
-                data-deal="0.0173">
+                data-deal="0.0173"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GPT-5.5 (medium)
@@ -5211,7 +5397,8 @@
                 data-coding=""
                 data-speed="44.0"
                 data-ctx="1000"
-                data-deal="0.0165">
+                data-deal="0.0165"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Claude Sonnet 4.6 (Non-reasoning)
@@ -5244,7 +5431,8 @@
                 data-coding=""
                 data-speed="42.0"
                 data-ctx="1000"
-                data-deal="0.0157">
+                data-deal="0.0157"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Claude Sonnet 4.6
@@ -5277,7 +5465,8 @@
                 data-coding=""
                 data-speed="68.0"
                 data-ctx="922"
-                data-deal="0.0157">
+                data-deal="0.0157"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GPT-5.5 (Non-reasoning)
@@ -5310,7 +5499,8 @@
                 data-coding=""
                 data-speed="48.0"
                 data-ctx="1000"
-                data-deal="0.0145">
+                data-deal="0.0145"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Claude Opus 4.7 (max)
@@ -5343,7 +5533,8 @@
                 data-coding=""
                 data-speed="47.0"
                 data-ctx="1000"
-                data-deal="0.0134">
+                data-deal="0.0134"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Claude Opus 4.7
@@ -5376,7 +5567,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="0.0114">
+                data-deal="0.0114"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 DeepSeek R1 0528
@@ -5409,7 +5601,8 @@
                 data-coding=""
                 data-speed="39.0"
                 data-ctx="128"
-                data-deal="0.0109">
+                data-deal="0.0109"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Magistral Medium 1.2
@@ -5442,7 +5635,8 @@
                 data-coding=""
                 data-speed="59.0"
                 data-ctx="256"
-                data-deal="0.0099">
+                data-deal="0.0099"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Jamba 1.7 Large
@@ -5475,7 +5669,8 @@
                 data-coding=""
                 data-speed="54.0"
                 data-ctx="256"
-                data-deal="0.0086">
+                data-deal="0.0086"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Command A
@@ -5508,7 +5703,8 @@
                 data-coding=""
                 data-speed="46.0"
                 data-ctx="128"
-                data-deal="0.0078">
+                data-deal="0.0078"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Llama 3.1 405B
@@ -5541,7 +5737,8 @@
                 data-coding=""
                 data-speed="34.0"
                 data-ctx="1000"
-                data-deal="0.0075">
+                data-deal="0.0075"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Nova Premier
@@ -5574,7 +5771,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="65"
-                data-deal="0.0034">
+                data-deal="0.0034"
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Apertus 70B Instruct
@@ -5607,7 +5805,8 @@
                 data-coding=""
                 data-speed="17.0"
                 data-ctx="128"
-                data-deal="0.0011">
+                data-deal="0.0011"
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Phi-4 Multimodal
@@ -5640,7 +5839,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="262"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Muse Spark
@@ -5671,7 +5871,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="200"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GLM-5-Turbo
@@ -5702,7 +5903,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="200"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GLM 5V Turbo
@@ -5733,7 +5935,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="2000"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Grok 4.1 Fast
@@ -5764,7 +5967,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="262"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Ring-2.6-1T
@@ -5795,7 +5999,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="256"
-                data-deal="">
+                data-deal=""
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 JT-35B-Flash
@@ -5826,7 +6031,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="256"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Doubao Seed Code
@@ -5857,7 +6063,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="256"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 K-EXAONE
@@ -5888,7 +6095,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="262"
-                data-deal="">
+                data-deal=""
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 EXAONE 4.5 33B
@@ -5919,7 +6127,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 ERNIE 5.0 Thinking Preview
@@ -5950,7 +6159,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="256"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Grok Code Fast 1
@@ -5981,7 +6191,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="1000"
-                data-deal="">
+                data-deal=""
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Nemotron Cascade 2 30B A3B
@@ -6012,7 +6223,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="262"
-                data-deal="">
+                data-deal=""
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Qwen3.5 9B
@@ -6043,7 +6255,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Solar Pro 3
@@ -6074,7 +6287,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 JT-MINI
@@ -6105,7 +6319,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="2000"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Grok 4.1 Fast
@@ -6136,7 +6351,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="256"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 K-EXAONE
@@ -6167,7 +6383,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Mi:dm K 2.5 Pro
@@ -6198,7 +6415,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Ring-1T
@@ -6229,7 +6447,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="131"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 INTELLECT-3
@@ -6260,7 +6479,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="large">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Solar Open 100B
@@ -6291,7 +6511,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Motif-2-12.7B
@@ -6322,7 +6543,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Ling-1T
@@ -6353,7 +6575,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemma 4 E4B
@@ -6384,7 +6607,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="131"
-                data-deal="">
+                data-deal=""
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 EXAONE 4.0 32B
@@ -6415,7 +6639,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="256"
-                data-deal="">
+                data-deal=""
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Nanbeige4.1-3B
@@ -6446,7 +6671,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="256"
-                data-deal="">
+                data-deal=""
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Falcon-H1R-7B
@@ -6477,7 +6703,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="65"
-                data-deal="">
+                data-deal=""
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Step3 VL 10B
@@ -6508,7 +6735,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="nano">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemma 4 E2B
@@ -6539,7 +6767,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="65"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Solar Pro 2
@@ -6570,7 +6799,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemma 4 E4B
@@ -6601,7 +6831,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="131"
-                data-deal="">
+                data-deal=""
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Granite 4.1 30B
@@ -6632,7 +6863,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="262"
-                data-deal="">
+                data-deal=""
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 NVIDIA Nemotron 3 Nano 4B
@@ -6663,7 +6895,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="65"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Solar Pro 2
@@ -6694,7 +6927,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="262"
-                data-deal="">
+                data-deal=""
+                data-tier="nano">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 MiniCPM-V 4.6 1.3B
@@ -6725,7 +6959,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="nano">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemma 4 E2B
@@ -6756,7 +6991,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="131"
-                data-deal="">
+                data-deal=""
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 EXAONE 4.0 32B
@@ -6787,7 +7023,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="262"
-                data-deal="">
+                data-deal=""
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Jamba Reasoning 3B
@@ -6818,7 +7055,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="131"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Ling-mini-2.0
@@ -6849,7 +7087,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="131"
-                data-deal="">
+                data-deal=""
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Granite 4.1 3B
@@ -6880,7 +7119,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Phi-4 Mini
@@ -6911,7 +7151,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="64"
-                data-deal="">
+                data-deal=""
+                data-tier="nano">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Exaone 4.0 1.2B
@@ -6942,7 +7183,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="64"
-                data-deal="">
+                data-deal=""
+                data-tier="nano">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Exaone 4.0 1.2B
@@ -6973,7 +7215,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="32"
-                data-deal="">
+                data-deal=""
+                data-tier="nano">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 LFM2.5-1.2B-Thinking
@@ -7004,7 +7247,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="258"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Jamba 1.7 Mini
@@ -7035,7 +7279,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="32"
-                data-deal="">
+                data-deal=""
+                data-tier="nano">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 LFM2 2.6B
@@ -7066,7 +7311,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="32"
-                data-deal="">
+                data-deal=""
+                data-tier="nano">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 LFM2.5-1.2B-Instruct
@@ -7097,7 +7343,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="nano">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Granite 4.0 H 1B
@@ -7128,7 +7375,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="32"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemma 3 270M
@@ -7159,7 +7407,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Granite 4.0 Micro
@@ -7190,7 +7439,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="nano">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Granite 4.0 1B
@@ -7221,7 +7471,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="32"
-                data-deal="">
+                data-deal=""
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 LFM2 8B A1B
@@ -7252,7 +7503,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="32"
-                data-deal="">
+                data-deal=""
+                data-tier="nano">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 LFM2.5-VL-1.6B
@@ -7283,7 +7535,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="32"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Granite 4.0 350M
@@ -7314,7 +7567,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="32"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Granite 4.0 H 350M
@@ -7345,7 +7599,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="8"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Tiny Aya Global
@@ -7376,7 +7631,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Llama 3.3 Nemotron Super 49B
@@ -7407,7 +7663,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="small">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Llama 3.1 Nemotron Nano 4B v1.1
@@ -7438,7 +7695,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="1000"
-                data-deal="">
+                data-deal=""
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Kimi Linear 48B A3B Instruct
@@ -7469,7 +7727,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Llama 3.3 Nemotron Super 49B
@@ -7500,7 +7759,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 R1 1776
@@ -7531,7 +7791,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="262"
-                data-deal="">
+                data-deal=""
+                data-tier="medium">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 EXAONE 4.5 33B
@@ -7562,7 +7823,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Gemini 3 Deep Think
@@ -7593,7 +7855,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="128"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 Mi:dm K 2.5 Pro Preview
@@ -7624,7 +7887,8 @@
                 data-coding=""
                 data-speed=""
                 data-ctx="922"
-                data-deal="">
+                data-deal=""
+                data-tier="frontier">
               <td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">
                 
                 GPT-5.5 Pro (xhigh)
@@ -7659,7 +7923,7 @@
       <p><strong class="text-gray-300">Coding Value</strong> = Coding Index / Blended Price.</p>
       <p><strong class="text-gray-300">Deal Score</strong> = weighted normalised composite: 50% value score + 30% coding value + 20% output speed.</p>
       <p><strong class="text-gray-300">Blended Price</strong> uses Artificial Analysis's 7:2:1 cache/input/output ratio where available; falls back to 2:1 input/output.</p>
-      <p>Data sourced from <a href="https://artificialanalysis.ai/leaderboards/models" class="text-indigo-400 hover:underline" target="_blank" rel="noopener">artificialanalysis.ai</a>. Analysis by <a href="https://deepseek.com" class="text-indigo-400 hover:underline" target="_blank" rel="noopener">DeepSeek</a>. Updated 2026-05-24 10:15 UTC.</p>
+      <p>Data sourced from <a href="https://artificialanalysis.ai/leaderboards/models" class="text-indigo-400 hover:underline" target="_blank" rel="noopener">artificialanalysis.ai</a>. Analysis by <a href="https://deepseek.com" class="text-indigo-400 hover:underline" target="_blank" rel="noopener">DeepSeek</a>. Updated 2026-05-24 10:26 UTC.</p>
     </section>
 
   </main>
@@ -7674,34 +7938,89 @@
     <p class="mt-1">Not affiliated with Artificial Analysis. Rankings are computed independently.</p>
   </footer>
 
-  <!-- ===== CLIENT-SIDE TABLE SORT ===== -->
+  <!-- ===== CLIENT-SIDE SORT + TIER FILTER ===== -->
   <script>
     (function () {
-      const table = document.getElementById('model-table');
-      const tbody = table.querySelector('tbody');
+      const table  = document.getElementById('model-table');
+      const tbody  = table.querySelector('tbody');
       let currentCol = 'deal';
-      let ascending = false;  // default: deal score descending
+      let ascending  = false;
+      let activeTier = 'all';
 
-      function cellValue(row, col) {
-        return row.dataset[col] || '';
+      // ── Helpers ──────────────────────────────────────────────────────────
+      function allRows() { return Array.from(tbody.querySelectorAll('tr')); }
+
+      function visibleRows() {
+        return allRows().filter(r => !r.classList.contains('tier-hidden'));
       }
 
-      function compare(a, b, col, type, asc) {
-        const va = cellValue(a, col);
-        const vb = cellValue(b, col);
+      // ── Tier filter ───────────────────────────────────────────────────────
+      function applyTierFilter() {
+        allRows().forEach(row => {
+          const tier = row.dataset.tier || 'frontier';
+          const hide = activeTier !== 'all' && tier !== activeTier;
+          row.classList.toggle('tier-hidden', hide);
+        });
+        updateVisibleCount();
+        updateRankBadges(visibleRows());
+      }
 
-        // Empty values always last
+      function updateVisibleCount() {
+        const n   = visibleRows().length;
+        const tot = allRows().length;
+        const el  = document.getElementById('visible-count');
+        if (el) el.textContent = activeTier === 'all'
+          ? `${tot} models`
+          : `${n} of ${tot} models`;
+      }
+
+      // Populate per-chip counts once on load
+      function populateCounts() {
+        const counts = {};
+        allRows().forEach(r => {
+          const t = r.dataset.tier || 'frontier';
+          counts[t] = (counts[t] || 0) + 1;
+        });
+        counts['all'] = allRows().length;
+        document.querySelectorAll('.tier-chip').forEach(chip => {
+          const t  = chip.dataset.tier;
+          const el = chip.querySelector('.tier-count');
+          if (el && counts[t] !== undefined) el.textContent = counts[t];
+        });
+      }
+
+      window.setTierFilter = function(btn) {
+        activeTier = btn.dataset.tier;
+        document.querySelectorAll('.tier-chip').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        applyTierFilter();
+      };
+
+      // ── Sort ──────────────────────────────────────────────────────────────
+      function compare(a, b, col, type, asc) {
+        const va = a.dataset[col] || '';
+        const vb = b.dataset[col] || '';
         if (va === '' && vb === '') return 0;
         if (va === '') return 1;
         if (vb === '') return -1;
-
-        let result;
-        if (type === 'number') {
-          result = parseFloat(va) - parseFloat(vb);
-        } else {
-          result = va.localeCompare(vb, undefined, { sensitivity: 'base' });
-        }
+        const result = type === 'number'
+          ? parseFloat(va) - parseFloat(vb)
+          : va.localeCompare(vb, undefined, { sensitivity: 'base' });
         return asc ? result : -result;
+      }
+
+      function updateRankBadges(rows) {
+        // Remove all existing badges first
+        tbody.querySelectorAll('span.rank-badge').forEach(b => b.remove());
+        // Re-add for top 3 visible rows
+        rows.slice(0, 3).forEach((row, idx) => {
+          const nameCell = row.querySelector('td:first-child');
+          if (!nameCell) return;
+          const badge = document.createElement('span');
+          badge.className = 'rank-badge text-indigo-400 mr-1.5 text-xs';
+          badge.textContent = `#${idx + 1}`;
+          nameCell.prepend(badge);
+        });
       }
 
       function sortTable(col, type) {
@@ -7709,47 +8028,33 @@
           ascending = !ascending;
         } else {
           currentCol = col;
-          // Numbers default descending (higher = better), strings ascending
           ascending = type === 'string';
         }
 
-        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const rows = allRows();
         rows.sort((a, b) => compare(a, b, col, type, ascending));
         rows.forEach(row => tbody.appendChild(row));
 
-        // Update rank badges for top 3
-        rows.forEach((row, idx) => {
-          const nameCell = row.querySelector('td:first-child');
-          const existingBadge = nameCell.querySelector('span.rank-badge');
-          if (existingBadge) existingBadge.remove();
-          if (idx < 3) {
-            const badge = document.createElement('span');
-            badge.className = 'rank-badge text-indigo-400 mr-1.5 text-xs';
-            badge.textContent = `#${idx + 1}`;
-            nameCell.prepend(badge);
-          }
-        });
+        updateRankBadges(visibleRows());
 
-        // Update header indicators
-        table.querySelectorAll('th.sortable').forEach(th => {
-          th.classList.remove('sort-asc', 'sort-desc');
-        });
+        table.querySelectorAll('th.sortable').forEach(th =>
+          th.classList.remove('sort-asc', 'sort-desc'));
         const activeHeader = table.querySelector(`th[data-col="${col}"]`);
-        if (activeHeader) {
+        if (activeHeader)
           activeHeader.classList.add(ascending ? 'sort-asc' : 'sort-desc');
-        }
       }
 
-      // Wire up header click events
       table.querySelectorAll('th.sortable').forEach(th => {
-        th.addEventListener('click', () => {
-          sortTable(th.dataset.col, th.dataset.type || 'string');
-        });
+        th.addEventListener('click', () =>
+          sortTable(th.dataset.col, th.dataset.type || 'string'));
       });
 
-      // Apply default sort on load (deal score descending)
+      // ── Init ─────────────────────────────────────────────────────────────
       const defaultHeader = table.querySelector('th[data-col="deal"]');
       if (defaultHeader) defaultHeader.classList.add('sort-desc');
+      populateCounts();
+      updateVisibleCount();
+      updateRankBadges(visibleRows());
     })();
   </script>
 
