@@ -113,11 +113,11 @@
         <h2 class="text-base font-semibold">All Models</h2>
         <div class="flex flex-wrap items-center gap-2">
           <span class="text-xs text-gray-500 mr-1">Filter by size:</span>
-          <button class="tier-chip active text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-300"
+          <button class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
                   data-tier="all" onclick="setTierFilter(this)">
             All <span class="tier-count ml-1 opacity-60"></span>
           </button>
-          <button class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
+          <button class="tier-chip active text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-300"
                   data-tier="frontier" onclick="setTierFilter(this)"
                   title="Proprietary / closed-source models (GPT, Claude, Gemini…)">
             Frontier <span class="tier-count ml-1 opacity-60"></span>
@@ -231,7 +231,7 @@
       }
     }
 
-    function renderHero(model) {
+    function renderHero(model, maxIntel) {
       var section = document.getElementById('hero-section');
       if (!model) { section.classList.add('hidden'); return; }
       section.classList.remove('hidden');
@@ -249,7 +249,7 @@
       html += '</div><div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">';
 
       html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Intelligence</p>';
-      html += '<p class="text-2xl font-mono font-bold">' + fmtScore(model.intelligence_score, 1) + '<span class="text-sm text-gray-400 font-normal">/60</span></p></div>';
+      html += '<p class="text-2xl font-mono font-bold">' + fmtScore(model.intelligence_score, 1) + '<span class="text-sm text-gray-400 font-normal">/' + maxIntel + '</span></p></div>';
 
       html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Blended Price</p>';
       html += '<p class="text-2xl font-mono font-bold">' + fmtPrice(model.price_blended) + '</p><p class="text-xs text-gray-500">/1M tokens</p></div>';
@@ -264,7 +264,7 @@
       document.getElementById('hero-card').innerHTML = html;
     }
 
-    function renderRunnersUp(models) {
+    function renderRunnersUp(models, maxIntel) {
       var section = document.getElementById('runners-section');
       var grid = document.getElementById('runners-grid');
       if (!models || models.length === 0) { section.classList.add('hidden'); return; }
@@ -280,7 +280,7 @@
           html += '<span class="shrink-0 bg-indigo-900/50 text-indigo-300 text-xs font-mono px-2 py-1 rounded-lg">' + model.composite_deal_score.toFixed(2) + '</span>';
         }
         html += '</div><div class="space-y-2 text-sm">';
-        html += '<div class="flex justify-between text-gray-400"><span>Intelligence</span><span class="font-mono text-gray-200">' + fmtScore(model.intelligence_score, 1) + '/60</span></div>';
+        html += '<div class="flex justify-between text-gray-400"><span>Intelligence</span><span class="font-mono text-gray-200">' + fmtScore(model.intelligence_score, 1) + '/' + maxIntel + '</span></div>';
         html += '<div class="flex justify-between text-gray-400"><span>Blended price</span><span class="font-mono text-gray-200">' + fmtPrice(model.price_blended) + '/1M</span></div>';
         html += '<div class="flex justify-between text-gray-400"><span>Value score</span><span class="font-mono text-gray-200">' + fmtScore(model.value_score, 1) + '</span></div>';
         html += '<div class="flex justify-between text-gray-400"><span>Coding index</span><span class="font-mono text-gray-200">' + fmtScore(model.coding_index, 1) + '</span></div>';
@@ -360,8 +360,14 @@
       currentData = data;
       renderHeader(data);
       var models = data.models || [];
-      renderHero(data.hero || null);
-      renderRunnersUp(data.runners_up || []);
+      var maxIntel = 60;
+      for (var i = 0; i < models.length; i++) {
+        if (models[i].intelligence_score != null && models[i].intelligence_score > maxIntel) {
+          maxIntel = Math.ceil(models[i].intelligence_score);
+        }
+      }
+      renderHero(data.hero || null, maxIntel);
+      renderRunnersUp(data.runners_up || [], maxIntel);
       renderInsights(data.insights, data.generated_at);
       renderTable(models);
       renderMethodology(data.generated_at);
@@ -433,7 +439,7 @@
       var tbody  = table.querySelector('tbody');
       var currentCol = 'deal';
       var ascending  = false;
-      var activeTier = 'all';
+      var activeTier = 'frontier';
 
       function allRows() { return Array.from(tbody.querySelectorAll('tr')); }
 
