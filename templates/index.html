@@ -113,11 +113,11 @@
         <h2 class="text-base font-semibold">All Models</h2>
         <div class="flex flex-wrap items-center gap-2">
           <span class="text-xs text-gray-500 mr-1">Filter by size:</span>
-          <button class="tier-chip active text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-300"
+          <button class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
                   data-tier="all" onclick="setTierFilter(this)">
             All <span class="tier-count ml-1 opacity-60"></span>
           </button>
-          <button class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
+          <button class="tier-chip active text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-300"
                   data-tier="frontier" onclick="setTierFilter(this)"
                   title="Proprietary / closed-source models (GPT, Claude, Gemini…)">
             Frontier <span class="tier-count ml-1 opacity-60"></span>
@@ -433,7 +433,7 @@
       var tbody  = table.querySelector('tbody');
       var currentCol = 'deal';
       var ascending  = false;
-      var activeTier = 'all';
+      var activeTier = 'frontier';
 
       function allRows() { return Array.from(tbody.querySelectorAll('tr')); }
 
