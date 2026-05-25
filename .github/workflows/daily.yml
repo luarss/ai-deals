@@ -39,10 +39,10 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs/index.html
-          # Only commit when the file actually changed
+          git add docs/
+          # Only commit when files actually changed
           if git diff --cached --quiet; then
-            echo "No changes to docs/index.html — skipping commit"
+            echo "No changes — skipping commit"
           else
             git commit -m "chore: update AI deals [$(date -u +'%Y-%m-%d')]"
             git push

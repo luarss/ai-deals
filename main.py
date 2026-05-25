@@ -1,4 +1,4 @@
-"""Orchestrator: scrape → merge → score → insights → render → write."""
+"""Orchestrator: scrape → merge → score → insights → write archives → render shell."""
 
 from __future__ import annotations
 
@@ -10,9 +10,10 @@ from pathlib import Path
 
 from src.insights import generate_insights
 from src.merger import merge_records
-from src.renderer import render
+from src.renderer import render_app_shell
 from src.scorer import annotate_sizes, rank_models
 from src.scraper import fetch_all_pages
+from src.writer import write_archives
 
 logging.basicConfig(
     level=logging.INFO,
@@ -67,15 +68,12 @@ def main() -> None:
         log.warning("Step 4/5: DEEPSEEK_API_KEY not set — skipping AI insights")
         insights = ""
 
-    # 5. Render HTML
-    log.info("Step 5/5: Rendering HTML")
-    html = render(
-        top_models=top_models,
-        all_models=ranked,
-        insights_text=insights,
-        generated_at=datetime.now(timezone.utc),
-    )
+    # 5. Write archives + app shell
+    log.info("Step 5/5: Writing JSON archives and HTML app shell")
+    generated_at = datetime.now(timezone.utc)
+    write_archives(ranked, insights, generated_at, top_models=top_models)
 
+    html = render_app_shell()
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(html, encoding="utf-8")
     log.info("Written to %s (%s bytes)", OUTPUT_PATH, f"{len(html):,}")

@@ -23,6 +23,18 @@ class RawModelRecord(BaseModel):
     source_pages: list[str] = Field(default_factory=list)
 
 
+class ArchivePayload(BaseModel):
+    """Top-level wrapper for JSON archive serialization."""
+
+    date: str
+    generated_at: str
+    insights: str
+    total_models: int
+    models: list["MergedModel"]
+    hero: Optional["MergedModel"] = None
+    runners_up: list["MergedModel"] = Field(default_factory=list)
+
+
 class MergedModel(RawModelRecord):
     """Post-deduplication fully merged record with computed value metrics."""
 

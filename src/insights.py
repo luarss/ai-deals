@@ -72,7 +72,7 @@ def generate_insights(top_models: list[MergedModel], api_key: str) -> str:
     try:
         client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com/v1")
         response = client.chat.completions.create(
-            model="deepseek-chat",
+            model="deepseek-v4-flash",
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_prompt},
