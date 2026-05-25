@@ -47,7 +47,11 @@ def main() -> None:
     log.info("Step 3/5: Scoring and ranking")
     annotate_sizes(merged)
     ranked = rank_models(merged)
-    top_models = [m for m in ranked if m.composite_deal_score is not None]
+
+    # Best deals analysis limited to frontier models only
+    foundation_ranked = [m for m in ranked if m.size_tier == "frontier"]
+
+    top_models = [m for m in foundation_ranked if m.composite_deal_score is not None]
     log.info(
         "Top deal: %s (score=%.2f)",
         ranked[0].name if ranked else "none",
