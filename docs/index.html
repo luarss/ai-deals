@@ -538,7 +538,7 @@
       var defaultHeader = table.querySelector('th[data-col="deal"]');
       if (defaultHeader) defaultHeader.classList.add('sort-desc');
       populateCounts();
-      updateVisibleCount();
+      applyTierFilter();
       updateRankBadges(visibleRows());
     }
   </script>
