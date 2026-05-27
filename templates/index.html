@@ -28,7 +28,9 @@
     .tier-chip.active { background-color: #4f46e5; border-color: #6366f1; color: #fff; }
     .tier-chip:not(.active):hover { border-color: #6366f1; color: #a5b4fc; }
 
-    tr.tier-hidden { display: none; }
+    tr.tier-hidden  { display: none; }
+    tr.intel-hidden { display: none; }
+    input[type=range].intel-slider { accent-color: #6366f1; cursor: pointer; }
 
     @keyframes gradientShift {
       0%   { background-position: 0% 50%; }
@@ -143,6 +145,12 @@
             Nano &lt;3B <span class="tier-count ml-1 opacity-60"></span>
           </button>
         </div>
+      </div>
+      <div class="flex items-center gap-3 mb-3">
+        <span class="text-xs text-gray-500">Min intelligence:</span>
+        <input id="intel-slider" type="range" class="intel-slider w-32" min="0" max="100" step="0.5">
+        <span id="intel-val" class="text-xs font-mono text-indigo-300 whitespace-nowrap"></span>
+        <button id="intel-reset" class="text-xs text-gray-500 hover:text-gray-300 transition-colors underline">reset to Q3</button>
       </div>
       <p class="text-xs text-gray-600 mb-2">Click column headers to sort · <span id="visible-count"></span></p>
       <p class="text-xs text-gray-600 mb-2 sm:hidden">← scroll →</p>
@@ -440,11 +448,33 @@
       var currentCol = 'deal';
       var ascending  = false;
       var activeTier = 'frontier';
+      var minIntel   = 0;
+      var intelQ3    = 0;
 
       function allRows() { return Array.from(tbody.querySelectorAll('tr')); }
 
       function visibleRows() {
-        return allRows().filter(function(r) { return !r.classList.contains('tier-hidden'); });
+        return allRows().filter(function(r) {
+          return !r.classList.contains('tier-hidden') && !r.classList.contains('intel-hidden');
+        });
+      }
+
+      function computeQ3() {
+        var scores = allRows()
+          .map(function(r) { return parseFloat(r.dataset.intel); })
+          .filter(function(v) { return !isNaN(v); })
+          .sort(function(a, b) { return a - b; });
+        if (!scores.length) return 0;
+        return scores[Math.floor(scores.length * 0.75)];
+      }
+
+      function applyIntelFilter() {
+        allRows().forEach(function(row) {
+          var v = parseFloat(row.dataset.intel);
+          row.classList.toggle('intel-hidden', !isNaN(v) && v < minIntel);
+        });
+        updateVisibleCount();
+        updateRankBadges(visibleRows());
       }
 
       function applyTierFilter() {
@@ -538,8 +568,42 @@
       var defaultHeader = table.querySelector('th[data-col="deal"]');
       if (defaultHeader) defaultHeader.classList.add('sort-desc');
       populateCounts();
+
+      // Intelligence slider — default to Q3 of all rows
+      (function() {
+        var slider   = document.getElementById('intel-slider');
+        var valLabel = document.getElementById('intel-val');
+        var resetBtn = document.getElementById('intel-reset');
+
+        var rows   = allRows();
+        var scores = rows.map(function(r) { return parseFloat(r.dataset.intel); }).filter(function(v) { return !isNaN(v); });
+        var intelMin = Math.floor(Math.min.apply(null, scores));
+        var intelMax = Math.ceil(Math.max.apply(null, scores));
+        intelQ3  = computeQ3();
+        minIntel = intelQ3;
+
+        slider.min   = intelMin;
+        slider.max   = intelMax;
+        slider.step  = 0.5;
+        slider.value = intelQ3;
+        valLabel.textContent = intelQ3.toFixed(1) + ' (Q3)';
+
+        slider.addEventListener('input', function() {
+          minIntel = parseFloat(slider.value);
+          valLabel.textContent = minIntel.toFixed(1) + (minIntel === intelQ3 ? ' (Q3)' : '');
+          applyIntelFilter();
+        });
+
+        resetBtn.addEventListener('click', function() {
+          minIntel = intelQ3;
+          slider.value = intelQ3;
+          valLabel.textContent = intelQ3.toFixed(1) + ' (Q3)';
+          applyIntelFilter();
+        });
+      })();
+
       applyTierFilter();
-      updateRankBadges(visibleRows());
+      applyIntelFilter();
     }
   </script>
 
