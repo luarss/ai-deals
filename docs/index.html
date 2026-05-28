@@ -748,9 +748,9 @@
 
       // Init
       var defaultCol = currentView === 'arena' ? 'arena_deal' : 'deal';
-      var defaultHeader = table.querySelector('th[data-col="' + defaultCol + '"]');
-      if (defaultHeader) defaultHeader.classList.add('sort-desc');
       currentCol = defaultCol;
+      ascending = false;  // numeric columns default to descending
+      sortTable(defaultCol, 'number');
       populateCounts();
 
       // Intelligence slider — default to Q3 of all rows
