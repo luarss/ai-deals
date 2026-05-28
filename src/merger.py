@@ -62,11 +62,23 @@ def normalise_name(name: str) -> str:
         "GPT-4o Mini (Nov '24)" → "gpt4o mini"
         "claude-3-7-sonnet-20250219" → "claude37sonnet"
         "DeepSeek V3.1" → "deepseek v31"
+        "GPT-5.5 (xhigh)" → "gpt55 xhigh"
     """
     # Strip OpenRouter "provider/" prefix (e.g. "openai/gpt-5.5" → "gpt-5.5")
     name = re.sub(r"^[a-z0-9_-]+/", "", name)
-    # Remove parenthetical annotations: (Nov '24), (Dec '24), (20250219)
-    name = re.sub(r"\s*\([^)]*\)", "", name)
+    # Remove date-like parentheticals: (Nov '24), (Feb 2026), (20250219)
+    # Keep variant annotations: (xhigh), (high), (Thinking), (Max), etc.
+    name = re.sub(
+        r"\s*\((?:"
+        r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[^)]*"  # month-based
+        r"|\d{4,}[^)]*"  # year-based or pure numeric
+        r")\)",
+        "",
+        name,
+        flags=re.IGNORECASE,
+    )
+    # Convert remaining parentheticals to space-separated words: (xhigh) → xhigh
+    name = re.sub(r"\(([^)]+)\)", r"\1", name)
     # Remove trailing version strings: v1.2, -20250219, .0
     name = re.sub(r"[-_]\d{6,}", "", name)  # -20250219
     name = re.sub(r"\s+v\d[\d.]*\b", "", name, flags=re.IGNORECASE)
@@ -133,18 +145,18 @@ def _resolve_slug(
     known_slugs: set[str],
 ) -> str:
     """Return the canonical slug for a record, updating registries as needed."""
-    # 1. Use the record's own slug if it looks like a real slug (contains a letter)
-    if record.model_id and re.search(r"[a-z]", record.model_id):
-        canonical = record.model_id
-        norm = normalise_name(record.name)
-        slug_registry.setdefault(norm, canonical)
-        known_slugs.add(canonical)
-        return canonical
-
-    # 2. Check normalised name registry
     norm = normalise_name(record.name)
+
+    # 1. If normalised name already matches an existing group, use that slug
     if norm in slug_registry:
         return slug_registry[norm]
+
+    # 2. Use the record's own slug if it looks like a real slug (contains a letter)
+    if record.model_id and re.search(r"[a-z]", record.model_id):
+        canonical = record.model_id
+        slug_registry[norm] = canonical
+        known_slugs.add(canonical)
+        return canonical
 
     # 3. Fuzzy match against known normalised names
     candidates = list(slug_registry.keys())

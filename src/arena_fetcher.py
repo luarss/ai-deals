@@ -7,6 +7,7 @@ No auth required. Returns Elo scores, confidence intervals, vote counts.
 from __future__ import annotations
 
 import logging
+import re
 import time
 from typing import Optional
 
@@ -62,8 +63,6 @@ def _fetch_json(url: str, retries: int = 3, backoff: float = 2.0) -> Optional[di
 
 def _derive_slug(name: str) -> str:
     """Derive a URL-slug-style identifier from a model name."""
-    import re
-
     slug = name.lower().strip()
     slug = re.sub(r"[^a-z0-9]+", "-", slug)
     return slug.strip("-")
@@ -78,6 +77,10 @@ def parse_arena_models(raw_models: list[dict], leaderboard: str) -> list[RawMode
         name = m.get("model", "").strip()
         if not name:
             continue
+
+        # Strip harness annotations like "(codex-harness)" — these are
+        # evaluation infrastructure labels, not part of the model identity
+        name = re.sub(r"\s*\(codex-harness\)", "", name, flags=re.IGNORECASE)
 
         kwargs: dict = {
             "model_id": _derive_slug(name),
