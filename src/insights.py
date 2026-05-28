@@ -81,7 +81,7 @@ def generate_insights(top_models: list[MergedModel], api_key: str) -> str:
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_prompt},
             ],
-            max_tokens=600,
+            max_tokens=1200,
             temperature=0.4,
         )
         text = response.choices[0].message.content or ""
