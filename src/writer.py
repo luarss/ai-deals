@@ -19,12 +19,15 @@ def write_archives(
     insights: str,
     generated_at: datetime,
     top_models: list[MergedModel] | None = None,
+    arena_top_models: list[MergedModel] | None = None,
 ) -> None:
     date_str = generated_at.strftime("%Y-%m-%d")
     generated_str = generated_at.strftime("%Y-%m-%d %H:%M UTC")
 
     hero = top_models[0] if top_models else None
     runners_up = top_models[1:4] if top_models else []
+    arena_hero = arena_top_models[0] if arena_top_models else None
+    arena_runners_up = arena_top_models[1:4] if arena_top_models else []
 
     payload = ArchivePayload(
         date=date_str,
@@ -34,6 +37,8 @@ def write_archives(
         models=models,
         hero=hero,
         runners_up=runners_up,
+        arena_hero=arena_hero,
+        arena_runners_up=arena_runners_up,
     )
 
     _write_json(DOCS_DIR / "data" / "latest.json", payload)

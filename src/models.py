@@ -21,6 +21,14 @@ class RawModelRecord(BaseModel):
     coding_index: Optional[float] = None  # AA Coding Index score
     livecodebench_score: Optional[float] = None  # LiveCodeBench %
     source_pages: list[str] = Field(default_factory=list)
+    # Arena AI (LMSYS Chatbot Arena)
+    arena_elo: Optional[float] = None
+    arena_ci: Optional[float] = None
+    arena_votes: Optional[int] = None
+    arena_coding_elo: Optional[float] = None
+    # OpenRouter pricing (per-1M-tokens, converted from per-token API response)
+    openrouter_price_input: Optional[float] = None
+    openrouter_price_output: Optional[float] = None
 
 
 class ArchivePayload(BaseModel):
@@ -33,6 +41,8 @@ class ArchivePayload(BaseModel):
     models: list["MergedModel"]
     hero: Optional["MergedModel"] = None
     runners_up: list["MergedModel"] = Field(default_factory=list)
+    arena_hero: Optional["MergedModel"] = None
+    arena_runners_up: list["MergedModel"] = Field(default_factory=list)
 
 
 class MergedModel(RawModelRecord):
@@ -40,7 +50,10 @@ class MergedModel(RawModelRecord):
 
     value_score: Optional[float] = None  # intelligence / blended_price
     coding_value: Optional[float] = None  # coding_index / blended_price
-    composite_deal_score: Optional[float] = None  # normalised weighted composite
+    composite_deal_score: Optional[float] = None  # normalised weighted composite (AA view)
+    arena_value: Optional[float] = None  # arena_elo / effective_price
+    arena_coding_value: Optional[float] = None  # arena_coding_elo / effective_price
+    arena_composite_score: Optional[float] = None  # normalised weighted composite (Arena view)
     param_billions: Optional[float] = None  # parameter count parsed from name
     size_tier: str = "frontier"  # nano | small | medium | large | frontier
 
@@ -55,8 +68,19 @@ class MergedModel(RawModelRecord):
                 self.coding_value = round(self.coding_index / blended, 4)
         return self
 
+    @model_validator(mode="after")
+    def compute_arena_raw_scores(self) -> "MergedModel":
+        """Compute Arena-based pre-normalisation ratio scores."""
+        blended = self._effective_blended_price()
+        if blended and blended > 0:
+            if self.arena_elo is not None:
+                self.arena_value = round(self.arena_elo / blended, 4)
+            if self.arena_coding_elo is not None:
+                self.arena_coding_value = round(self.arena_coding_elo / blended, 4)
+        return self
+
     def _effective_blended_price(self) -> Optional[float]:
-        """Return the best available blended price estimate."""
+        """Return the best available blended price estimate (AA first, then OpenRouter)."""
         if self.price_blended is not None and self.price_blended > 0:
             return self.price_blended
         if self.price_input is not None and self.price_output is not None:
@@ -64,4 +88,9 @@ class MergedModel(RawModelRecord):
             return (2 * self.price_input + self.price_output) / 3
         if self.price_input is not None:
             return self.price_input
+        # OpenRouter fallbacks
+        if self.openrouter_price_input is not None and self.openrouter_price_output is not None:
+            return (2 * self.openrouter_price_input + self.openrouter_price_output) / 3
+        if self.openrouter_price_input is not None:
+            return self.openrouter_price_input
         return None

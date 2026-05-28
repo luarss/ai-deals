@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Model Deal Tracker — Best Value LLMs Today</title>
-  <meta name="description" content="Daily ranking of the best-value AI models by intelligence per dollar, coding performance, and speed. Powered by Artificial Analysis data." />
+  <meta name="description" content="Daily ranking of the best-value AI models by intelligence per dollar, Arena Elo, and performance. Powered by Artificial Analysis, Arena AI, and OpenRouter data." />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -74,6 +74,12 @@
         <p class="text-sm text-gray-400 mt-0.5">Intelligence per dollar · updated daily</p>
       </div>
       <div class="flex flex-wrap items-center gap-3 text-xs">
+        <div id="view-toggle" class="flex items-center gap-0.5 bg-gray-800 rounded-full p-0.5 mr-1">
+          <button id="btn-aa" class="view-btn text-xs px-3 py-1 rounded-full font-medium transition-colors bg-indigo-600 text-white"
+                  data-view="aa" onclick="switchView('aa')">Artificial Analysis</button>
+          <button id="btn-arena" class="view-btn text-xs px-3 py-1 rounded-full font-medium transition-colors text-gray-400"
+                  data-view="arena" onclick="switchView('arena')">Arena AI</button>
+        </div>
         <span id="live-badge" class="live-badge text-green-400 font-medium hidden">Live</span>
         <select id="date-selector" class="bg-gray-800 px-3 py-1 rounded-full text-gray-300 text-xs border border-gray-700 cursor-pointer focus:outline-none focus:border-indigo-500">
           <option value="latest">Loading...</option>
@@ -156,19 +162,8 @@
       <p class="text-xs text-gray-600 mb-2 sm:hidden">← scroll →</p>
 
       <div class="overflow-x-auto rounded-xl border border-gray-800">
-        <table id="model-table" class="w-full text-sm border-collapse">
-          <thead class="bg-gray-900 text-gray-400 text-xs uppercase">
-            <tr>
-              <th class="sortable px-4 py-3 text-left whitespace-nowrap cursor-pointer" data-col="name" data-type="string">Model</th>
-              <th class="sortable px-4 py-3 text-right whitespace-nowrap cursor-pointer" data-col="intel" data-type="number">Intelligence</th>
-              <th class="sortable px-4 py-3 text-right whitespace-nowrap cursor-pointer" data-col="price" data-type="number">Price /1M</th>
-              <th class="sortable px-4 py-3 text-right whitespace-nowrap cursor-pointer" data-col="value" data-type="number">Value Score</th>
-              <th class="sortable px-4 py-3 text-right whitespace-nowrap cursor-pointer" data-col="coding" data-type="number">Coding</th>
-              <th class="sortable px-4 py-3 text-right whitespace-nowrap cursor-pointer" data-col="speed" data-type="number">Speed t/s</th>
-              <th class="sortable px-4 py-3 text-right whitespace-nowrap cursor-pointer" data-col="ctx" data-type="number">Context</th>
-              <th class="sortable px-4 py-3 text-right whitespace-nowrap cursor-pointer" data-col="deal" data-type="number">Deal Score ↓</th>
-            </tr>
-          </thead>
+        <table id="model-table" class="w-full text-sm border-collapse table-fixed">
+          <thead id="table-head" class="bg-gray-900 text-gray-400 text-xs uppercase"></thead>
           <tbody id="table-body" class="divide-y divide-gray-800/60"></tbody>
         </table>
       </div>
@@ -190,10 +185,12 @@
   <footer class="border-t border-gray-800 mt-10 px-4 py-6 text-center text-xs text-gray-600">
     <p>
       Data: <a href="https://artificialanalysis.ai" class="hover:text-gray-400 transition-colors">artificialanalysis.ai</a>
+      · <a href="https://arena.ai" class="hover:text-gray-400 transition-colors">arena.ai</a>
+      · <a href="https://openrouter.ai" class="hover:text-gray-400 transition-colors">openrouter.ai</a>
       · Analysis: <a href="https://deepseek.com" class="hover:text-gray-400 transition-colors">DeepSeek AI</a>
       · <a href="https://github.com/luarss/ai-deals" class="hover:text-gray-400 transition-colors">View source</a>
     </p>
-    <p class="mt-1">Not affiliated with Artificial Analysis. Rankings are computed independently.</p>
+    <p class="mt-1">Not affiliated with any data source. Rankings are computed independently.</p>
   </footer>
 
   <!-- ===== CLIENT-SIDE DATA FETCHING + RENDERING ===== -->
@@ -226,6 +223,32 @@
     // ── State ────────────────────────────────────────────────────────────
     let currentData = null;
     let currentDate = 'latest';
+    let currentView = 'aa';
+
+    function switchView(view) {
+      currentView = view;
+      window.location.hash = view === 'aa' ? '' : view;
+      document.querySelectorAll('.view-btn').forEach(function(b) {
+        var isActive = b.dataset.view === view;
+        b.classList.toggle('bg-indigo-600', isActive);
+        b.classList.toggle('text-white', isActive);
+        b.classList.toggle('text-gray-400', !isActive);
+      });
+      if (currentData) renderPage(currentData);
+    }
+
+    // Read initial view from URL hash
+    (function() {
+      var hash = window.location.hash.replace('#', '');
+      if (hash === 'arena') {
+        currentView = 'arena';
+        // Swap button styles to match initial state
+        document.getElementById('btn-aa').classList.remove('bg-indigo-600', 'text-white');
+        document.getElementById('btn-aa').classList.add('text-gray-400');
+        document.getElementById('btn-arena').classList.add('bg-indigo-600', 'text-white');
+        document.getElementById('btn-arena').classList.remove('text-gray-400');
+      }
+    })();
 
     // ── Render functions ─────────────────────────────────────────────────
     function renderHeader(data) {
@@ -239,59 +262,94 @@
       }
     }
 
-    function renderHero(model, maxIntel) {
+    function renderHero(model, maxIntel, maxElo) {
       var section = document.getElementById('hero-section');
       if (!model) { section.classList.add('hidden'); return; }
       section.classList.remove('hidden');
+
+      var isArena = currentView === 'arena';
+      var score = isArena ? model.arena_composite_score : model.composite_deal_score;
+      var scoreLabel = isArena ? 'Arena Deal' : 'Deal Score';
+      var price = effPrice(model);
 
       var html = '<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4"><div>';
       html += '<h2 class="text-3xl sm:text-4xl font-bold text-white">' + escapeHtml(model.name) + '</h2>';
       if (model.creator) {
         html += '<p class="text-indigo-300 mt-1 text-sm">' + escapeHtml(model.creator) + '</p>';
       }
-      if (model.composite_deal_score != null) {
+      if (score != null) {
         html += '<div class="mt-3 inline-flex items-center gap-2 bg-indigo-600/30 border border-indigo-500/40 rounded-full px-4 py-1.5">';
-        html += '<span class="text-xs text-indigo-300 uppercase tracking-wide">Deal Score</span>';
-        html += '<span class="text-xl font-mono font-bold text-white">' + model.composite_deal_score.toFixed(2) + '</span></div>';
+        html += '<span class="text-xs text-indigo-300 uppercase tracking-wide">' + scoreLabel + '</span>';
+        html += '<span class="text-xl font-mono font-bold text-white">' + score.toFixed(2) + '</span></div>';
       }
       html += '</div><div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">';
 
-      html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Intelligence</p>';
-      html += '<p class="text-2xl font-mono font-bold">' + fmtScore(model.intelligence_score, 1) + '<span class="text-sm text-gray-400 font-normal">/' + maxIntel + '</span></p></div>';
+      if (isArena) {
+        // Arena view hero metrics
+        html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Arena Elo</p>';
+        html += '<p class="text-2xl font-mono font-bold">' + (model.arena_elo != null ? fmtScore(model.arena_elo, 0) : '—');
+        if (model.arena_ci != null) html += '<span class="text-sm text-gray-400 font-normal"> ±' + model.arena_ci + '</span>';
+        html += '</p></div>';
 
-      html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Blended Price</p>';
-      html += '<p class="text-2xl font-mono font-bold">' + fmtPrice(model.price_blended) + '</p><p class="text-xs text-gray-500">/1M tokens</p></div>';
+        html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Blended Price</p>';
+        html += '<p class="text-2xl font-mono font-bold">' + fmtPrice(price) + '</p><p class="text-xs text-gray-500">/1M tokens</p></div>';
 
-      html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Value Score</p>';
-      html += '<p class="text-2xl font-mono font-bold">' + fmtScore(model.value_score, 1) + '</p><p class="text-xs text-gray-500">intel / $</p></div>';
+        html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Arena Value</p>';
+        html += '<p class="text-2xl font-mono font-bold">' + fmtScore(model.arena_value, 1) + '</p><p class="text-xs text-gray-500">elo / $</p></div>';
 
-      html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Speed</p>';
-      html += '<p class="text-2xl font-mono font-bold">' + fmtSpeed(model.output_speed_tps) + '</p><p class="text-xs text-gray-500">tokens/sec</p></div>';
+        html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Speed</p>';
+        html += '<p class="text-2xl font-mono font-bold">' + fmtSpeed(model.output_speed_tps) + '</p><p class="text-xs text-gray-500">tokens/sec</p></div>';
+      } else {
+        // AA view hero metrics (existing)
+        html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Intelligence</p>';
+        html += '<p class="text-2xl font-mono font-bold">' + fmtScore(model.intelligence_score, 1) + '<span class="text-sm text-gray-400 font-normal">/' + maxIntel + '</span></p></div>';
+
+        html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Blended Price</p>';
+        html += '<p class="text-2xl font-mono font-bold">' + fmtPrice(price) + '</p><p class="text-xs text-gray-500">/1M tokens</p></div>';
+
+        html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Value Score</p>';
+        html += '<p class="text-2xl font-mono font-bold">' + fmtScore(model.value_score, 1) + '</p><p class="text-xs text-gray-500">intel / $</p></div>';
+
+        html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Speed</p>';
+        html += '<p class="text-2xl font-mono font-bold">' + fmtSpeed(model.output_speed_tps) + '</p><p class="text-xs text-gray-500">tokens/sec</p></div>';
+      }
 
       html += '</div></div>';
       document.getElementById('hero-card').innerHTML = html;
     }
 
-    function renderRunnersUp(models, maxIntel) {
+    function renderRunnersUp(models, maxIntel, maxElo) {
       var section = document.getElementById('runners-section');
       var grid = document.getElementById('runners-grid');
       if (!models || models.length === 0) { section.classList.add('hidden'); return; }
       section.classList.remove('hidden');
 
+      var isArena = currentView === 'arena';
       var html = '';
       models.forEach(function(model, i) {
+        var score = isArena ? model.arena_composite_score : model.composite_deal_score;
+        var price = effPrice(model);
+
         html += '<div class="bg-gray-900 border border-gray-800 rounded-xl p-5 hover:border-indigo-700/50 transition-colors">';
         html += '<div class="flex items-start justify-between gap-2 mb-4"><div>';
         html += '<p class="text-xs text-gray-500 mb-0.5">#' + (i + 2) + '</p>';
         html += '<h3 class="font-semibold text-base leading-snug">' + escapeHtml(model.name) + '</h3></div>';
-        if (model.composite_deal_score != null) {
-          html += '<span class="shrink-0 bg-indigo-900/50 text-indigo-300 text-xs font-mono px-2 py-1 rounded-lg">' + model.composite_deal_score.toFixed(2) + '</span>';
+        if (score != null) {
+          html += '<span class="shrink-0 bg-indigo-900/50 text-indigo-300 text-xs font-mono px-2 py-1 rounded-lg">' + score.toFixed(2) + '</span>';
         }
         html += '</div><div class="space-y-2 text-sm">';
-        html += '<div class="flex justify-between text-gray-400"><span>Intelligence</span><span class="font-mono text-gray-200">' + fmtScore(model.intelligence_score, 1) + '/' + maxIntel + '</span></div>';
-        html += '<div class="flex justify-between text-gray-400"><span>Blended price</span><span class="font-mono text-gray-200">' + fmtPrice(model.price_blended) + '/1M</span></div>';
-        html += '<div class="flex justify-between text-gray-400"><span>Value score</span><span class="font-mono text-gray-200">' + fmtScore(model.value_score, 1) + '</span></div>';
-        html += '<div class="flex justify-between text-gray-400"><span>Coding index</span><span class="font-mono text-gray-200">' + fmtScore(model.coding_index, 1) + '</span></div>';
+
+        if (isArena) {
+          html += '<div class="flex justify-between text-gray-400"><span>Arena Elo</span><span class="font-mono text-gray-200">' + (model.arena_elo != null ? fmtScore(model.arena_elo, 0) + (model.arena_ci != null ? ' ±' + model.arena_ci : '') : '—') + '</span></div>';
+          html += '<div class="flex justify-between text-gray-400"><span>Blended price</span><span class="font-mono text-gray-200">' + fmtPrice(price) + '/1M</span></div>';
+          html += '<div class="flex justify-between text-gray-400"><span>Arena value</span><span class="font-mono text-gray-200">' + fmtScore(model.arena_value, 1) + '</span></div>';
+          html += '<div class="flex justify-between text-gray-400"><span>Arena code</span><span class="font-mono text-gray-200">' + fmtScore(model.arena_coding_elo, 0) + '</span></div>';
+        } else {
+          html += '<div class="flex justify-between text-gray-400"><span>Intelligence</span><span class="font-mono text-gray-200">' + fmtScore(model.intelligence_score, 1) + '/' + maxIntel + '</span></div>';
+          html += '<div class="flex justify-between text-gray-400"><span>Blended price</span><span class="font-mono text-gray-200">' + fmtPrice(price) + '/1M</span></div>';
+          html += '<div class="flex justify-between text-gray-400"><span>Value score</span><span class="font-mono text-gray-200">' + fmtScore(model.value_score, 1) + '</span></div>';
+          html += '<div class="flex justify-between text-gray-400"><span>Coding index</span><span class="font-mono text-gray-200">' + fmtScore(model.coding_index, 1) + '</span></div>';
+        }
         html += '</div></div>';
       });
       grid.innerHTML = html;
@@ -308,49 +366,133 @@
         html += '<p>' + escapeHtml(p.trim()) + '</p>';
       });
       document.getElementById('insights-body').innerHTML = html;
-      document.getElementById('insights-footer').textContent = 'Generated ' + generatedAt + ' · Data: artificialanalysis.ai';
+      document.getElementById('insights-footer').textContent = 'Generated ' + generatedAt + ' · Data: artificialanalysis.ai + arena.ai';
+    }
+
+    function effPrice(m) {
+      if (m.price_blended != null && m.price_blended > 0) return m.price_blended;
+      if (m.price_input != null && m.price_output != null) return (2 * m.price_input + m.price_output) / 3;
+      if (m.price_input != null) return m.price_input;
+      if (m.openrouter_price_input != null && m.openrouter_price_output != null) return (2 * m.openrouter_price_input + m.openrouter_price_output) / 3;
+      if (m.openrouter_price_input != null) return m.openrouter_price_input;
+      return null;
+    }
+
+    function buildTableHead(view) {
+      var cols;
+      if (view === 'arena') {
+        cols = [
+          ['name', 'string', 'Model', 'text-left', 'w-[28%]'],
+          ['arena_elo', 'number', 'Arena Elo', 'text-right', 'w-[10%]'],
+          ['price', 'number', 'Price /1M', 'text-right', 'w-[11%]'],
+          ['arena_value', 'number', 'Arena Value', 'text-right', 'w-[12%]'],
+          ['arena_code', 'number', 'Arena Code', 'text-right', 'w-[11%]'],
+          ['speed', 'number', 'Speed t/s', 'text-right', 'w-[10%]'],
+          ['ctx', 'number', 'Context', 'text-right', 'w-[8%]'],
+          ['arena_deal', 'number', 'Arena Deal ↓', 'text-right', 'w-[10%]']
+        ];
+      } else {
+        cols = [
+          ['name', 'string', 'Model', 'text-left', 'w-[28%]'],
+          ['intel', 'number', 'Intelligence', 'text-right', 'w-[11%]'],
+          ['price', 'number', 'Price /1M', 'text-right', 'w-[12%]'],
+          ['value', 'number', 'Value Score', 'text-right', 'w-[12%]'],
+          ['coding', 'number', 'Coding', 'text-right', 'w-[9%]'],
+          ['speed', 'number', 'Speed t/s', 'text-right', 'w-[10%]'],
+          ['ctx', 'number', 'Context', 'text-right', 'w-[8%]'],
+          ['deal', 'number', 'Deal Score ↓', 'text-right', 'w-[10%]']
+        ];
+      }
+      var html = '<tr>';
+      cols.forEach(function(c) {
+        html += '<th class="sortable px-4 py-3 whitespace-nowrap cursor-pointer ' + c[3] + ' ' + c[4] + '" data-col="' + c[0] + '" data-type="' + c[1] + '">' + c[2] + '</th>';
+      });
+      html += '</tr>';
+      document.getElementById('table-head').innerHTML = html;
+      return cols.length;
     }
 
     function renderTable(models) {
+      var isArena = currentView === 'arena';
+      buildTableHead(currentView);
+
       var html = '';
       models.forEach(function(m, i) {
+        var score = isArena ? m.arena_composite_score : m.composite_deal_score;
         var dealClass = 'text-gray-400';
-        if (m.composite_deal_score != null && m.composite_deal_score > 0.7) dealClass = 'text-indigo-300';
-        else if (m.composite_deal_score != null && m.composite_deal_score > 0.4) dealClass = 'text-gray-200';
+        if (score != null && score > 0.7) dealClass = 'text-indigo-300';
+        else if (score != null && score > 0.4) dealClass = 'text-gray-200';
 
-        var valueClass = 'text-gray-300';
-        if (m.value_score != null && m.value_score > 100) valueClass = 'text-green-400';
-        else if (m.value_score != null && m.value_score > 30) valueClass = 'text-yellow-400';
+        var price = effPrice(m);
 
         html += '<tr class="transition-colors" data-name="' + escapeAttr(m.name) + '"';
         html += ' data-intel="' + (m.intelligence_score != null ? m.intelligence_score : '') + '"';
-        html += ' data-price="' + (m.price_blended != null ? m.price_blended : '') + '"';
+        html += ' data-arena_elo="' + (m.arena_elo != null ? m.arena_elo : '') + '"';
+        html += ' data-price="' + (price != null ? price : '') + '"';
         html += ' data-value="' + (m.value_score != null ? m.value_score : '') + '"';
+        html += ' data-arena_value="' + (m.arena_value != null ? m.arena_value : '') + '"';
         html += ' data-coding="' + (m.coding_index != null ? m.coding_index : '') + '"';
+        html += ' data-arena_code="' + (m.arena_coding_elo != null ? m.arena_coding_elo : '') + '"';
         html += ' data-speed="' + (m.output_speed_tps != null ? m.output_speed_tps : '') + '"';
         html += ' data-ctx="' + (m.context_window_k != null ? m.context_window_k : '') + '"';
         html += ' data-deal="' + (m.composite_deal_score != null ? m.composite_deal_score : '') + '"';
+        html += ' data-arena_deal="' + (m.arena_composite_score != null ? m.arena_composite_score : '') + '"';
         html += ' data-tier="' + (m.size_tier || 'frontier') + '">';
 
-        html += '<td class="px-4 py-3 font-medium text-gray-100 whitespace-nowrap">';
+        // Column: Model
+        html += '<td class="px-4 py-3 font-medium text-gray-100 truncate">';
         html += escapeHtml(m.name);
         if (m.creator) html += '<span class="text-gray-500 text-xs ml-1">· ' + escapeHtml(m.creator) + '</span>';
         html += '</td>';
 
-        html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtScore(m.intelligence_score, 1) + '</td>';
-        html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtPrice(m.price_blended) + '</td>';
-        html += '<td class="px-4 py-3 text-right font-mono ' + valueClass + '">' + fmtScore(m.value_score, 1) + '</td>';
-        html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtScore(m.coding_index, 1) + '</td>';
-        html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtSpeed(m.output_speed_tps) + '</td>';
-        html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtContext(m.context_window_k) + '</td>';
-        html += '<td class="px-4 py-3 text-right font-mono font-semibold ' + dealClass + '">' + (m.composite_deal_score != null ? m.composite_deal_score.toFixed(2) : '—') + '</td>';
+        if (isArena) {
+          // Arena Elo
+          var elo = m.arena_elo;
+          var eloText = elo != null ? fmtScore(elo, 0) : '—';
+          if (m.arena_ci != null && elo != null) eloText += '<span class="text-gray-500 text-xs"> ±' + m.arena_ci + '</span>';
+          html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + eloText + '</td>';
+          // Price
+          html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtPrice(price) + '</td>';
+          // Arena Value
+          var avClass = 'text-gray-300';
+          if (m.arena_value != null && m.arena_value > 100) avClass = 'text-green-400';
+          else if (m.arena_value != null && m.arena_value > 30) avClass = 'text-yellow-400';
+          html += '<td class="px-4 py-3 text-right font-mono ' + avClass + '">' + fmtScore(m.arena_value, 1) + '</td>';
+          // Arena Code
+          html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtScore(m.arena_coding_elo, 0) + '</td>';
+          // Speed
+          html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtSpeed(m.output_speed_tps) + '</td>';
+          // Context
+          html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtContext(m.context_window_k) + '</td>';
+          // Arena Deal
+          html += '<td class="px-4 py-3 text-right font-mono font-semibold ' + dealClass + '">' + (m.arena_composite_score != null ? m.arena_composite_score.toFixed(2) : '—') + '</td>';
+        } else {
+          // AA view (existing columns)
+          var valueClass = 'text-gray-300';
+          if (m.value_score != null && m.value_score > 100) valueClass = 'text-green-400';
+          else if (m.value_score != null && m.value_score > 30) valueClass = 'text-yellow-400';
+
+          html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtScore(m.intelligence_score, 1) + '</td>';
+          html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtPrice(price) + '</td>';
+          html += '<td class="px-4 py-3 text-right font-mono ' + valueClass + '">' + fmtScore(m.value_score, 1) + '</td>';
+          html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtScore(m.coding_index, 1) + '</td>';
+          html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtSpeed(m.output_speed_tps) + '</td>';
+          html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtContext(m.context_window_k) + '</td>';
+          html += '<td class="px-4 py-3 text-right font-mono font-semibold ' + dealClass + '">' + (m.composite_deal_score != null ? m.composite_deal_score.toFixed(2) : '—') + '</td>';
+        }
         html += '</tr>';
       });
       document.getElementById('table-body').innerHTML = html;
     }
 
     function renderMethodology(generatedAt) {
-      document.getElementById('methodology-footer').innerHTML = 'Data sourced from <a href="https://artificialanalysis.ai/leaderboards/models" class="text-indigo-400 hover:underline" target="_blank" rel="noopener">artificialanalysis.ai</a>. Analysis by <a href="https://deepseek.com" class="text-indigo-400 hover:underline" target="_blank" rel="noopener">DeepSeek</a>. Updated ' + generatedAt + '.';
+      var isArena = currentView === 'arena';
+      var footerEl = document.getElementById('methodology-footer');
+      if (isArena) {
+        footerEl.innerHTML = 'Data sourced from <a href="https://arena.ai" class="text-indigo-400 hover:underline" target="_blank" rel="noopener">arena.ai</a> (via <a href="https://api.wulong.dev" class="text-indigo-400 hover:underline" target="_blank" rel="noopener">api.wulong.dev</a>) and <a href="https://openrouter.ai" class="text-indigo-400 hover:underline" target="_blank" rel="noopener">openrouter.ai</a>. Analysis by <a href="https://deepseek.com" class="text-indigo-400 hover:underline" target="_blank" rel="noopener">DeepSeek</a>. Updated ' + generatedAt + '.';
+      } else {
+        footerEl.innerHTML = 'Data sourced from <a href="https://artificialanalysis.ai/leaderboards/models" class="text-indigo-400 hover:underline" target="_blank" rel="noopener">artificialanalysis.ai</a>. Analysis by <a href="https://deepseek.com" class="text-indigo-400 hover:underline" target="_blank" rel="noopener">DeepSeek</a>. Updated ' + generatedAt + '.';
+      }
     }
 
     function escapeHtml(str) {
@@ -366,16 +508,40 @@
     // ── Render entire page from JSON ────────────────────────────────────
     function renderPage(data) {
       currentData = data;
-      renderHeader(data);
-      var models = data.models || [];
+
+      var isArena = currentView === 'arena';
+      var allModels = data.models || [];
+
+      // Filter models to the active view's data source
+      var models = isArena
+        ? allModels.filter(function(m) { return m.arena_elo != null || m.arena_coding_elo != null; })
+        : allModels.filter(function(m) { return m.intelligence_score != null; });
+
+      // Update header with filtered count
+      document.getElementById('model-count').textContent = models.length + ' models tracked';
+      document.getElementById('date-badge').textContent = new Date(data.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+      var liveBadge = document.getElementById('live-badge');
+      if (currentDate === 'latest') {
+        liveBadge.classList.remove('hidden');
+      } else {
+        liveBadge.classList.add('hidden');
+      }
+
+      var hero = isArena ? (data.arena_hero || data.hero) : data.hero;
+      var runners = isArena ? (data.arena_runners_up || data.runners_up) : data.runners_up;
+
       var maxIntel = 60;
+      var maxElo = 2000;
       for (var i = 0; i < models.length; i++) {
         if (models[i].intelligence_score != null && models[i].intelligence_score > maxIntel) {
           maxIntel = Math.ceil(models[i].intelligence_score);
         }
+        if (models[i].arena_elo != null && models[i].arena_elo > maxElo) {
+          maxElo = Math.ceil(models[i].arena_elo / 100) * 100;
+        }
       }
-      renderHero(data.hero || null, maxIntel);
-      renderRunnersUp(data.runners_up || [], maxIntel);
+      renderHero(hero || null, maxIntel, maxElo);
+      renderRunnersUp(runners || [], maxIntel, maxElo);
       renderInsights(data.insights, data.generated_at);
       renderTable(models);
       renderMethodology(data.generated_at);
@@ -565,8 +731,10 @@
       });
 
       // Init
-      var defaultHeader = table.querySelector('th[data-col="deal"]');
+      var defaultCol = currentView === 'arena' ? 'arena_deal' : 'deal';
+      var defaultHeader = table.querySelector('th[data-col="' + defaultCol + '"]');
       if (defaultHeader) defaultHeader.classList.add('sort-desc');
+      currentCol = defaultCol;
       populateCounts();
 
       // Intelligence slider — default to Q3 of all rows

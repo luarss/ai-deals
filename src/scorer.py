@@ -18,6 +18,11 @@ W_VALUE = 0.50
 W_CODING = 0.30
 W_SPEED = 0.20
 
+# Arena view weights
+W_ARENA_VALUE = 0.50
+W_ARENA_CODING = 0.30
+W_ARENA_SPEED = 0.20
+
 # Regex: match "70B", "0.8B", "397B A17B" (MoE — use total params), "27b" etc.
 _PARAM_RE = re.compile(r"(\d+(?:\.\d+)?)\s*[Bb](?:\b|$)")
 
@@ -99,6 +104,33 @@ def rank_models(models: list[MergedModel]) -> list[MergedModel]:
         else:
             model.composite_deal_score = None
 
+    # --- Arena composite score ---
+    av_range = _build_range(_safe_values(models, "arena_value"))
+    acv_range = _build_range(_safe_values(models, "arena_coding_value"))
+
+    for model in models:
+        # Only compute arena score if there's arena Elo or coding data
+        if model.arena_value is None and model.arena_coding_value is None:
+            continue
+
+        parts: list[tuple[float, float]] = []
+
+        if model.arena_value is not None:
+            parts.append((W_ARENA_VALUE, _normalise(model.arena_value, *av_range)))
+
+        if model.arena_coding_value is not None:
+            parts.append((W_ARENA_CODING, _normalise(model.arena_coding_value, *acv_range)))
+        elif model.arena_value is not None:
+            # Redistribute coding weight onto value when coding data is absent
+            parts = [(W_ARENA_VALUE + W_ARENA_CODING, _normalise(model.arena_value, *av_range))]
+
+        if model.output_speed_tps is not None:
+            parts.append((W_ARENA_SPEED, _normalise(model.output_speed_tps, *sp_range)))
+
+        if parts:
+            total_weight = sum(w for w, _ in parts)
+            model.arena_composite_score = round(sum(w * s for w, s in parts) / total_weight, 4)
+
     # Sort: models with a composite score first (descending), then by intelligence
     return sorted(
         models,
@@ -108,3 +140,10 @@ def rank_models(models: list[MergedModel]) -> list[MergedModel]:
             -(m.intelligence_score or 0),
         ),
     )
+
+
+def compute_top_models(models: list[MergedModel], view: str = "aa") -> list[MergedModel]:
+    """Return frontier-tier models sorted by the given view's composite score."""
+    score_field = "arena_composite_score" if view == "arena" else "composite_deal_score"
+    foundation = [m for m in models if m.size_tier == "frontier" and getattr(m, score_field) is not None]
+    return sorted(foundation, key=lambda m: -(getattr(m, score_field) or 0))

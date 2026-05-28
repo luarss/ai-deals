@@ -24,6 +24,9 @@ PAGE_PRIORITY: dict[str, int] = {
     "leaderboard": 0,
     "coding": 1,
     "livecodebench": 2,
+    "arena-text": 3,
+    "arena-code": 4,
+    "openrouter": 5,
 }
 
 NULLABLE_FIELDS = (
@@ -36,6 +39,14 @@ NULLABLE_FIELDS = (
     "context_window_k",
     "coding_index",
     "livecodebench_score",
+    # Arena AI
+    "arena_elo",
+    "arena_ci",
+    "arena_votes",
+    "arena_coding_elo",
+    # OpenRouter
+    "openrouter_price_input",
+    "openrouter_price_output",
 )
 
 
@@ -52,6 +63,8 @@ def normalise_name(name: str) -> str:
         "claude-3-7-sonnet-20250219" → "claude37sonnet"
         "DeepSeek V3.1" → "deepseek v31"
     """
+    # Strip OpenRouter "provider/" prefix (e.g. "openai/gpt-5.5" → "gpt-5.5")
+    name = re.sub(r"^[a-z0-9_-]+/", "", name)
     # Remove parenthetical annotations: (Nov '24), (Dec '24), (20250219)
     name = re.sub(r"\s*\([^)]*\)", "", name)
     # Remove trailing version strings: v1.2, -20250219, .0

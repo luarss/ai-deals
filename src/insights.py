@@ -51,6 +51,10 @@ def build_user_prompt(top_models: list[MergedModel], as_of: str) -> str:
             parts.append(f"speed={m.output_speed_tps:.0f}t/s")
         if m.context_window_k is not None:
             parts.append(f"context={m.context_window_k}K")
+        if m.arena_elo is not None:
+            parts.append(f"arena_elo={m.arena_elo:.0f}")
+        if m.arena_coding_elo is not None:
+            parts.append(f"arena_code_elo={m.arena_coding_elo:.0f}")
         lines.append(", ".join(parts))
     lines.append("\nWrite the 3-paragraph summary now.")
     return "\n".join(lines)
