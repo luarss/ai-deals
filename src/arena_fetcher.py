@@ -149,14 +149,25 @@ def _parse_table_cell(cell: str, leaderboard: str) -> dict:
 
 
 def _parse_score_cell(cell: str) -> tuple[Optional[int], Optional[int]]:
-    """Parse score cell like '1502±4' or '1502±4 Preliminary'."""
+    """Parse score cell like '1502±4' or '1567+10/-10'."""
     cell = cell.strip()
     # Remove trailing annotations
     cell = re.sub(r"\s*(Preliminary|final|confirmed)\s*", "", cell, flags=re.IGNORECASE)
-    parts = cell.split("±")
-    score = _parse_int(parts[0]) if parts[0].strip() else None
-    ci = _parse_int(parts[1]) if len(parts) > 1 and parts[1].strip() else None
-    return score, ci
+    if "±" in cell:
+        parts = cell.split("±")
+        score = _parse_int(parts[0])
+        ci = _parse_int(parts[1]) if len(parts) > 1 else None
+        return score, ci
+    # Code leaderboard format: "1567+10/-10"
+    m = re.match(r"(\d+)\+(\d+)/-(\d+)", cell)
+    if m:
+        score = _parse_int(m.group(1))
+        # Average the +/- as a single CI value
+        ci = (_parse_int(m.group(2)) + _parse_int(m.group(3))) // 2
+        return score, ci
+    # Plain integer
+    score = _parse_int(cell)
+    return score, None
 
 
 def _parse_price_cell(cell: str) -> tuple[Optional[float], Optional[float]]:
