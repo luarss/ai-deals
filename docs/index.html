@@ -285,17 +285,25 @@
       html += '</div><div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-2">';
 
       if (isArena) {
-        // Arena view hero metrics
-        html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Arena Elo</p>';
-        html += '<p class="text-2xl font-mono font-bold">' + (model.arena_elo != null ? fmtScore(model.arena_elo, 0) : '—');
-        if (model.arena_ci != null) html += '<span class="text-sm text-gray-400 font-normal"> ±' + model.arena_ci + '</span>';
+        // Arena view hero metrics — fall back to code metrics when text Elo missing
+        var hasElo = model.arena_elo != null;
+        var hasCodeElo = model.arena_coding_elo != null;
+        var qualityLabel = hasElo ? 'Arena Elo' : (hasCodeElo ? 'Arena Code' : 'Arena Elo');
+        var qualityVal = hasElo ? model.arena_elo : (hasCodeElo ? model.arena_coding_elo : null);
+        var qualityCi = hasElo ? model.arena_ci : null;
+        var valueLabel = hasElo ? 'Arena Value' : (hasCodeElo ? 'Code Value' : 'Arena Value');
+        var valueVal = hasElo ? model.arena_value : (hasCodeElo ? model.arena_coding_value : null);
+
+        html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">' + qualityLabel + '</p>';
+        html += '<p class="text-2xl font-mono font-bold">' + (qualityVal != null ? fmtScore(qualityVal, 0) : '—');
+        if (qualityCi != null) html += '<span class="text-sm text-gray-400 font-normal"> ±' + qualityCi + '</span>';
         html += '</p></div>';
 
         html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Blended Price</p>';
         html += '<p class="text-2xl font-mono font-bold">' + fmtPrice(price) + '</p><p class="text-xs text-gray-500">/1M tokens</p></div>';
 
-        html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Arena Value</p>';
-        html += '<p class="text-2xl font-mono font-bold">' + fmtScore(model.arena_value, 1) + '</p><p class="text-xs text-gray-500">elo / $</p></div>';
+        html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">' + valueLabel + '</p>';
+        html += '<p class="text-2xl font-mono font-bold">' + fmtScore(valueVal, 1) + '</p><p class="text-xs text-gray-500">elo / $</p></div>';
 
         html += '<div class="bg-white/5 rounded-xl p-4 text-center"><p class="text-xs text-gray-400 mb-1">Speed</p>';
         html += '<p class="text-2xl font-mono font-bold">' + fmtSpeed(model.output_speed_tps) + '</p><p class="text-xs text-gray-500">tokens/sec</p></div>';
@@ -340,9 +348,17 @@
         html += '</div><div class="space-y-2 text-sm">';
 
         if (isArena) {
-          html += '<div class="flex justify-between text-gray-400"><span>Arena Elo</span><span class="font-mono text-gray-200">' + (model.arena_elo != null ? fmtScore(model.arena_elo, 0) + (model.arena_ci != null ? ' ±' + model.arena_ci : '') : '—') + '</span></div>';
+          var hasElo = model.arena_elo != null;
+          var hasCodeElo = model.arena_coding_elo != null;
+          var qualLabel = hasElo ? 'Arena Elo' : (hasCodeElo ? 'Arena Code' : 'Arena Elo');
+          var qualVal = hasElo ? model.arena_elo : (hasCodeElo ? model.arena_coding_elo : null);
+          var qualExtra = hasElo && model.arena_ci != null ? ' ±' + model.arena_ci : '';
+          var valLabel = hasElo ? 'Arena value' : (hasCodeElo ? 'Code value' : 'Arena value');
+          var valVal = hasElo ? model.arena_value : (hasCodeElo ? model.arena_coding_value : null);
+
+          html += '<div class="flex justify-between text-gray-400"><span>' + qualLabel + '</span><span class="font-mono text-gray-200">' + (qualVal != null ? fmtScore(qualVal, 0) + qualExtra : '—') + '</span></div>';
           html += '<div class="flex justify-between text-gray-400"><span>Blended price</span><span class="font-mono text-gray-200">' + fmtPrice(price) + '/1M</span></div>';
-          html += '<div class="flex justify-between text-gray-400"><span>Arena value</span><span class="font-mono text-gray-200">' + fmtScore(model.arena_value, 1) + '</span></div>';
+          html += '<div class="flex justify-between text-gray-400"><span>' + valLabel + '</span><span class="font-mono text-gray-200">' + fmtScore(valVal, 1) + '</span></div>';
           html += '<div class="flex justify-between text-gray-400"><span>Arena code</span><span class="font-mono text-gray-200">' + fmtScore(model.arena_coding_elo, 0) + '</span></div>';
         } else {
           html += '<div class="flex justify-between text-gray-400"><span>Intelligence</span><span class="font-mono text-gray-200">' + fmtScore(model.intelligence_score, 1) + '/' + maxIntel + '</span></div>';
