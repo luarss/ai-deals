@@ -152,7 +152,7 @@
           </button>
         </div>
       </div>
-      <div class="flex items-center gap-3 mb-3">
+      <div id="intel-filter-row" class="flex items-center gap-3 mb-3">
         <span class="text-xs text-gray-500">Min intelligence:</span>
         <input id="intel-slider" type="range" class="intel-slider w-32" min="0" max="100" step="0.5">
         <span id="intel-val" class="text-xs font-mono text-indigo-300 whitespace-nowrap"></span>
@@ -546,6 +546,9 @@
       var hero = isArena ? (data.arena_hero || data.hero) : data.hero;
       var runners = isArena ? (data.arena_runners_up || data.runners_up) : data.runners_up;
 
+      // Show/hide intel slider: AA only — Arena models don't all have intel scores
+      document.getElementById('intel-filter-row').style.display = isArena ? 'none' : '';
+
       var maxIntel = 60;
       var maxElo = 2000;
       for (var i = 0; i < models.length; i++) {
@@ -746,21 +749,28 @@
         });
       });
 
-      // Init
+      // Init — sort by the view's default score column descending
       var defaultCol = currentView === 'arena' ? 'arena_deal' : 'deal';
-      currentCol = defaultCol;
-      ascending = false;  // numeric columns default to descending
+      currentCol = '';      // force sortTable to see this as a new column
+      ascending = true;     // sortTable will flip to false (descending) for numeric
       sortTable(defaultCol, 'number');
       populateCounts();
 
-      // Intelligence slider — default to Q3 of all rows
+      // Intelligence slider — hidden in Arena view
       (function() {
         var slider   = document.getElementById('intel-slider');
         var valLabel = document.getElementById('intel-val');
         var resetBtn = document.getElementById('intel-reset');
 
+        if (!slider || slider.closest('#intel-filter-row').style.display === 'none') {
+          minIntel = 0;
+          return;
+        }
+
+        // Gather all intel scores from rendered rows for min/max
         var rows   = allRows();
         var scores = rows.map(function(r) { return parseFloat(r.dataset.intel); }).filter(function(v) { return !isNaN(v); });
+        if (!scores.length) { minIntel = 0; return; }
         var intelMin = Math.floor(Math.min.apply(null, scores));
         var intelMax = Math.ceil(Math.max.apply(null, scores));
         intelQ3  = computeQ3();
