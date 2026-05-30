@@ -134,6 +134,12 @@ def _parse_table_cell(cell: str, leaderboard: str) -> dict:
         fields["name"] = cell0
         rest = ""
 
+    # Strip harness annotations like "(codex-harness)" so text and code
+    # leaderboard entries for the same model merge correctly.
+    fields["name"] = re.sub(r"\s*\(codex-harness\)", "", fields["name"], flags=re.IGNORECASE)
+    if "model_id" in fields:
+        fields["model_id"] = re.sub(r"\s*\(codex-harness\)", "", fields["model_id"], flags=re.IGNORECASE)
+
     # Extract vendor from "Vendor · License"
     vm = _VENDOR_RE.match(rest)
     if vm:
