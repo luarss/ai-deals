@@ -2,7 +2,7 @@ name: Daily AI Deals Update
 
 on:
   schedule:
-    - cron: "0 6 * * *"   # 06:00 UTC daily — after AA's typical data refresh window
+    - cron: "17 2 * * *"  # 02:17 UTC daily — off-peak for GitHub Actions runners
   workflow_dispatch:        # allow manual trigger from Actions tab
 
 permissions:
