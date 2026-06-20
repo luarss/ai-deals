@@ -543,9 +543,6 @@
         liveBadge.classList.add('hidden');
       }
 
-      var hero = isArena ? (data.arena_hero || data.hero) : data.hero;
-      var runners = isArena ? (data.arena_runners_up || data.runners_up) : data.runners_up;
-
       // Show intel slider for both views; switch data source in Arena mode
       document.getElementById('intel-filter-row').style.display = '';
       document.getElementById('intel-label').textContent = isArena ? 'Min Arena Elo:' : 'Min intelligence:';
@@ -560,12 +557,25 @@
           maxElo = Math.ceil(models[i].arena_elo / 100) * 100;
         }
       }
-      renderHero(hero || null, maxIntel, maxElo);
-      renderRunnersUp(runners || [], maxIntel, maxElo);
       renderInsights(data.insights, data.generated_at);
       renderTable(models);
       renderMethodology(data.generated_at);
       initTableInteractions();
+
+      // Derive scorecard from the leaderboard's filtered/sorted state so the
+      // hero and runners-up always match the top 3 visible rows (frontier tier
+      // + Q3 intelligence/Elo filter + deal-score sort).
+      (function() {
+        var tbody = document.querySelector('#model-table tbody');
+        var visRows = Array.from(tbody.querySelectorAll('tr')).filter(function(r) {
+          return !r.classList.contains('tier-hidden') && !r.classList.contains('intel-hidden');
+        });
+        var modelMap = {};
+        allModels.forEach(function(m) { modelMap[m.name] = m; });
+        var top = visRows.slice(0, 3).map(function(r) { return modelMap[r.dataset.name]; }).filter(Boolean);
+        renderHero(top[0] || null, maxIntel, maxElo);
+        renderRunnersUp(top.slice(1), maxIntel, maxElo);
+      })();
     }
 
     // ── Date selector ───────────────────────────────────────────────────
