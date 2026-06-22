@@ -29,6 +29,13 @@ class RawModelRecord(BaseModel):
     # OpenRouter pricing (per-1M-tokens, converted from per-token API response)
     openrouter_price_input: Optional[float] = None
     openrouter_price_output: Optional[float] = None
+    openrouter_model_id: Optional[str] = None  # raw OR id, e.g. "openai/gpt-4o"
+    # Modality (from OpenRouter architecture field)
+    input_modalities: list[str] = Field(default_factory=list)
+    output_modalities: list[str] = Field(default_factory=list)
+    # Uptime (best across all OpenRouter endpoints, last 30 min / 1 day)
+    uptime_30m: Optional[float] = None
+    uptime_1d: Optional[float] = None
 
 
 class ArchivePayload(BaseModel):

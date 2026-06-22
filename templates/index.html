@@ -220,6 +220,18 @@
       return v + 'K';
     }
 
+    function fmtUptime(v) {
+      if (v == null) return '—';
+      return v.toFixed(1) + '%';
+    }
+
+    function uptimeClass(v) {
+      if (v == null) return 'text-gray-600';
+      if (v >= 99) return 'text-green-400';
+      if (v >= 95) return 'text-yellow-400';
+      return 'text-red-400';
+    }
+
     // ── State ────────────────────────────────────────────────────────────
     let currentData = null;
     let currentDate = 'latest';
@@ -398,25 +410,27 @@
       var cols;
       if (view === 'arena') {
         cols = [
-          ['name', 'string', 'Model', 'text-left', 'w-[28%]'],
-          ['arena_elo', 'number', 'Arena Elo', 'text-right', 'w-[10%]'],
-          ['price', 'number', 'Price /1M', 'text-right', 'w-[11%]'],
-          ['arena_value', 'number', 'Arena Value', 'text-right', 'w-[12%]'],
-          ['arena_code', 'number', 'Arena Code', 'text-right', 'w-[11%]'],
-          ['speed', 'number', 'TPS', 'text-right', 'w-[10%]'],
-          ['ctx', 'number', 'Context', 'text-right', 'w-[8%]'],
-          ['arena_deal', 'number', 'Arena Deal ↓', 'text-right', 'w-[10%]']
+          ['name', 'string', 'Model', 'text-left', 'w-[24%]'],
+          ['arena_elo', 'number', 'Arena Elo', 'text-right', 'w-[9%]'],
+          ['price', 'number', 'Price /1M', 'text-right', 'w-[10%]'],
+          ['arena_value', 'number', 'Arena Value', 'text-right', 'w-[11%]'],
+          ['arena_code', 'number', 'Arena Code', 'text-right', 'w-[10%]'],
+          ['speed', 'number', 'TPS', 'text-right', 'w-[9%]'],
+          ['ctx', 'number', 'Context', 'text-right', 'w-[7%]'],
+          ['arena_deal', 'number', 'Arena Deal ↓', 'text-right', 'w-[9%]'],
+          ['uptime', 'number', 'Uptime', 'text-right', 'w-[9%]']
         ];
       } else {
         cols = [
-          ['name', 'string', 'Model', 'text-left', 'w-[28%]'],
-          ['intel', 'number', 'Intelligence', 'text-right', 'w-[11%]'],
-          ['price', 'number', 'Price /1M', 'text-right', 'w-[12%]'],
-          ['value', 'number', 'Value Score', 'text-right', 'w-[12%]'],
-          ['coding', 'number', 'Coding', 'text-right', 'w-[9%]'],
-          ['speed', 'number', 'TPS', 'text-right', 'w-[10%]'],
-          ['ctx', 'number', 'Context', 'text-right', 'w-[8%]'],
-          ['deal', 'number', 'Deal Score ↓', 'text-right', 'w-[10%]']
+          ['name', 'string', 'Model', 'text-left', 'w-[24%]'],
+          ['intel', 'number', 'Intelligence', 'text-right', 'w-[10%]'],
+          ['price', 'number', 'Price /1M', 'text-right', 'w-[11%]'],
+          ['value', 'number', 'Value Score', 'text-right', 'w-[11%]'],
+          ['coding', 'number', 'Coding', 'text-right', 'w-[8%]'],
+          ['speed', 'number', 'TPS', 'text-right', 'w-[9%]'],
+          ['ctx', 'number', 'Context', 'text-right', 'w-[7%]'],
+          ['deal', 'number', 'Deal Score ↓', 'text-right', 'w-[9%]'],
+          ['uptime', 'number', 'Uptime', 'text-right', 'w-[9%]']
         ];
       }
       var html = '<tr>';
@@ -453,12 +467,26 @@
         html += ' data-ctx="' + (m.context_window_k != null ? m.context_window_k : '') + '"';
         html += ' data-deal="' + (m.composite_deal_score != null ? m.composite_deal_score : '') + '"';
         html += ' data-arena_deal="' + (m.arena_composite_score != null ? m.arena_composite_score : '') + '"';
-        html += ' data-tier="' + (m.size_tier || 'frontier') + '">';
+        html += ' data-tier="' + (m.size_tier || 'frontier') + '"';
+        html += ' data-uptime="' + (m.uptime_30m != null ? m.uptime_30m : '') + '">';
 
         // Column: Model
-        html += '<td class="px-4 py-3 font-medium text-gray-100 truncate">';
-        html += escapeHtml(m.name);
-        if (m.creator) html += '<span class="text-gray-500 text-xs ml-1">· ' + escapeHtml(m.creator) + '</span>';
+        html += '<td class="px-4 py-3 font-medium text-gray-100">';
+        html += '<div class="flex items-center gap-1 flex-wrap">';
+        html += '<span class="truncate">' + escapeHtml(m.name) + '</span>';
+        if (m.creator) html += '<span class="text-gray-500 text-xs shrink-0">· ' + escapeHtml(m.creator) + '</span>';
+        // Modality chips — only for non-text modalities
+        if (m.input_modalities) {
+          m.input_modalities.forEach(function(mod) {
+            if (mod === 'image') html += '<span class="shrink-0 text-xs bg-purple-900/50 text-purple-300 px-1 py-0.5 rounded font-mono">img</span>';
+            else if (mod === 'audio') html += '<span class="shrink-0 text-xs bg-blue-900/50 text-blue-300 px-1 py-0.5 rounded font-mono">audio</span>';
+            else if (mod === 'file') html += '<span class="shrink-0 text-xs bg-gray-700/50 text-gray-400 px-1 py-0.5 rounded font-mono">file</span>';
+          });
+        }
+        if (m.output_modalities && m.output_modalities.includes('image')) {
+          html += '<span class="shrink-0 text-xs bg-pink-900/50 text-pink-300 px-1 py-0.5 rounded font-mono">img↑</span>';
+        }
+        html += '</div>';
         html += '</td>';
 
         if (isArena) {
@@ -482,6 +510,8 @@
           html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtContext(m.context_window_k) + '</td>';
           // Arena Deal
           html += '<td class="px-4 py-3 text-right font-mono font-semibold ' + dealClass + '">' + (m.arena_composite_score != null ? m.arena_composite_score.toFixed(2) : '—') + '</td>';
+          // Uptime
+          html += '<td class="px-4 py-3 text-right font-mono ' + uptimeClass(m.uptime_30m) + '">' + fmtUptime(m.uptime_30m) + '</td>';
         } else {
           // AA view (existing columns)
           var valueClass = 'text-gray-300';
@@ -495,6 +525,7 @@
           html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtSpeed(m.output_speed_tps) + '</td>';
           html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtContext(m.context_window_k) + '</td>';
           html += '<td class="px-4 py-3 text-right font-mono font-semibold ' + dealClass + '">' + (m.composite_deal_score != null ? m.composite_deal_score.toFixed(2) : '—') + '</td>';
+          html += '<td class="px-4 py-3 text-right font-mono ' + uptimeClass(m.uptime_30m) + '">' + fmtUptime(m.uptime_30m) + '</td>';
         }
         html += '</tr>';
       });

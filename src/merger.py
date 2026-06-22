@@ -47,6 +47,15 @@ NULLABLE_FIELDS = (
     # OpenRouter
     "openrouter_price_input",
     "openrouter_price_output",
+    "openrouter_model_id",
+    "uptime_30m",
+    "uptime_1d",
+)
+
+# List fields: take the first non-empty list across the priority-sorted group
+LIST_FIELDS = (
+    "input_modalities",
+    "output_modalities",
 )
 
 
@@ -123,6 +132,13 @@ def coalesce_fields(group: list[RawModelRecord]) -> dict[str, Any]:
         for rec in sorted_group:
             val = getattr(rec, field, None)
             if val is not None:
+                merged[field] = val
+                break
+
+    for field in LIST_FIELDS:
+        for rec in sorted_group:
+            val = getattr(rec, field, [])
+            if val:
                 merged[field] = val
                 break
 

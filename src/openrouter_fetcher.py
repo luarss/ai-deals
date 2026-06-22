@@ -1,7 +1,8 @@
 """Fetch model pricing from OpenRouter API.
 
 API: https://openrouter.ai/api/v1/models (no auth required)
-Returns per-model pricing (per-token), context length, model ID.
+Returns per-model pricing (per-token), context length, model ID, modalities.
+Uptime is fetched in parallel from /api/v1/models/{id}/endpoints.
 """
 
 from __future__ import annotations
@@ -9,6 +10,7 @@ from __future__ import annotations
 import logging
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Optional
 
 import requests
@@ -161,6 +163,10 @@ def parse_openrouter_models(raw_data: list[dict]) -> list[RawModelRecord]:
         context_length = m.get("context_length")
         or_ctx = round(context_length / 1000) if isinstance(context_length, (int, float)) and context_length > 0 else None
 
+        architecture = m.get("architecture", {})
+        input_mods: list[str] = architecture.get("input_modalities") or []
+        output_mods: list[str] = architecture.get("output_modalities") or []
+
         slug = _derive_slug(model_id)
 
         try:
@@ -172,6 +178,9 @@ def parse_openrouter_models(raw_data: list[dict]) -> list[RawModelRecord]:
                     openrouter_price_input=or_input,
                     openrouter_price_output=or_output,
                     context_window_k=or_ctx,
+                    openrouter_model_id=model_id,
+                    input_modalities=input_mods,
+                    output_modalities=output_mods,
                     source_pages=["openrouter"],
                 )
             )
@@ -181,8 +190,45 @@ def parse_openrouter_models(raw_data: list[dict]) -> list[RawModelRecord]:
     return records
 
 
+def _fetch_endpoint_uptime(model_id: str) -> tuple[str, float | None, float | None]:
+    """Fetch best uptime across all endpoints for one OpenRouter model ID."""
+    url = f"https://openrouter.ai/api/v1/models/{model_id}/endpoints"
+    try:
+        resp = requests.get(url, headers=HEADERS, timeout=15)
+        if not resp.ok:
+            return model_id, None, None
+        endpoints = resp.json().get("data", {}).get("endpoints", [])
+        up30 = [e["uptime_last_30m"] for e in endpoints if e.get("uptime_last_30m") is not None]
+        up1d = [e["uptime_last_1d"] for e in endpoints if e.get("uptime_last_1d") is not None]
+        return model_id, (max(up30) if up30 else None), (max(up1d) if up1d else None)
+    except Exception as exc:
+        log.debug("Uptime fetch failed for %s: %s", model_id, exc)
+        return model_id, None, None
+
+
+def _enrich_uptime(records: list[RawModelRecord]) -> None:
+    """Fetch uptime stats for all OpenRouter records in parallel (mutates in place)."""
+    or_records = [r for r in records if r.openrouter_model_id]
+    if not or_records:
+        return
+
+    log.info("Fetching uptime for %d OpenRouter models in parallel...", len(or_records))
+    id_to_record: dict[str, RawModelRecord] = {r.openrouter_model_id: r for r in or_records}  # type: ignore[index]
+
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        futures = {executor.submit(_fetch_endpoint_uptime, mid): mid for mid in id_to_record}
+        for future in as_completed(futures):
+            mid, u30, u1d = future.result()
+            rec = id_to_record[mid]
+            rec.uptime_30m = u30
+            rec.uptime_1d = u1d
+
+    fetched = sum(1 for r in or_records if r.uptime_30m is not None)
+    log.info("Uptime fetched for %d/%d models", fetched, len(or_records))
+
+
 def fetch_all_openrouter() -> list[RawModelRecord]:
-    """Fetch and parse all OpenRouter models."""
+    """Fetch and parse all OpenRouter models, enriching with uptime in parallel."""
     log.info("Fetching OpenRouter models...")
     raw = fetch_openrouter_models()
     if raw is None:
@@ -190,4 +236,5 @@ def fetch_all_openrouter() -> list[RawModelRecord]:
         return []
     records = parse_openrouter_models(raw)
     log.info("OpenRouter: %d models with pricing", len(records))
+    _enrich_uptime(records)
     return records
