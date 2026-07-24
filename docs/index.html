@@ -92,6 +92,17 @@
 
   <main class="max-w-7xl mx-auto px-4 py-10 space-y-12">
 
+    <!-- ===== WHAT CHANGED TODAY (spec 03 — the headline) ===== -->
+    <section id="changelog-section" class="hidden">
+      <div class="flex items-baseline flex-wrap gap-3 mb-1">
+        <p class="text-xs uppercase tracking-widest text-indigo-400 font-semibold">What changed today</p>
+        <p id="changelog-subtitle" class="text-xs text-gray-500"></p>
+      </div>
+      <div id="changelog-banner"></div>
+      <div id="changelog-strip" class="flex flex-wrap gap-2 mt-2 mb-4"></div>
+      <div id="changelog-body" class="space-y-4"></div>
+    </section>
+
     <!-- ===== HERO BEST DEAL ===== -->
     <section id="hero-section" class="hidden">
       <p class="text-xs uppercase tracking-widest text-indigo-400 mb-3 font-semibold">Best Deal Today</p>
@@ -102,6 +113,38 @@
     <section id="runners-section" class="hidden">
       <p class="text-xs uppercase tracking-widest text-gray-500 mb-4 font-semibold">Runners-Up</p>
       <div id="runners-grid" class="grid grid-cols-1 sm:grid-cols-3 gap-5"></div>
+    </section>
+
+    <!-- ===== CHEAPEST GOOD-ENOUGH STRIP (spec 02, AA view only) ===== -->
+    <section id="cheapest-strip" class="hidden">
+      <p class="text-xs uppercase tracking-widest text-emerald-400 mb-2 font-semibold">Cheapest that's good enough</p>
+      <div id="cheapest-strip-body" class="flex flex-wrap gap-3"></div>
+    </section>
+
+    <!-- ===== INTELLIGENCE BAND SECTIONS (spec 02, AA view only) ===== -->
+    <section id="band-flagship" class="band-section hidden"><div id="band-flagship-body"></div></section>
+    <section id="band-workhorse" class="band-section hidden"><div id="band-workhorse-body"></div></section>
+    <section id="band-budget" class="band-section hidden"><div id="band-budget-body"></div></section>
+
+    <!-- ===== TRENDS: THE COST OF CAPABILITY (spec 04) ===== -->
+    <section id="trends-section" class="hidden">
+      <div class="flex items-center flex-wrap gap-3 mb-1">
+        <p id="trends-title" class="text-xs uppercase tracking-widest text-indigo-400 font-semibold">The cost of capability over time</p>
+        <div id="trends-toggle" class="flex items-center gap-0.5 bg-gray-800 rounded-full p-0.5">
+          <button class="trends-metric-btn text-xs px-3 py-0.5 rounded-full font-medium bg-indigo-600 text-white" data-metric="cheapest" onclick="setTrendsMetric('cheapest')">Cheapest</button>
+          <button class="trends-metric-btn text-xs px-3 py-0.5 rounded-full font-medium text-gray-400" data-metric="median" onclick="setTrendsMetric('median')">Median</button>
+        </div>
+      </div>
+      <p id="trends-caption" class="text-xs text-gray-500 mb-3"></p>
+      <div id="trends-chart" class="bg-gray-900/60 border border-gray-800 rounded-xl p-3 overflow-x-auto"></div>
+    </section>
+
+    <!-- ===== PRICE vs QUALITY FRONTIER CHART ===== -->
+    <section id="frontier-section" class="hidden">
+      <p class="text-xs uppercase tracking-widest text-indigo-400 mb-1 font-semibold">
+        <span id="frontier-title">Price vs Intelligence Frontier</span></p>
+      <p class="text-xs text-gray-500 mb-3">Best deals are on the frontier — nothing cheaper is smarter. The ringed model is the knee (best value).</p>
+      <div id="frontier-chart" class="bg-gray-900/60 border border-gray-800 rounded-xl p-3 overflow-x-auto"></div>
     </section>
 
     <!-- ===== AI INSIGHTS ===== -->
@@ -126,9 +169,9 @@
             All <span class="tier-count ml-1 opacity-60"></span>
           </button>
           <button class="tier-chip active text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-300"
-                  data-tier="frontier" onclick="setTierFilter(this)"
-                  title="Proprietary / closed-source models (GPT, Claude, Gemini…)">
-            Frontier <span class="tier-count ml-1 opacity-60"></span>
+                  data-tier="unknown" onclick="setTierFilter(this)"
+                  title="Models with no parseable parameter count (often proprietary / closed-source)">
+            Unknown size <span class="tier-count ml-1 opacity-60"></span>
           </button>
           <button class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
                   data-tier="large" onclick="setTierFilter(this)"
@@ -172,10 +215,11 @@
     <!-- ===== METHODOLOGY NOTE ===== -->
     <section class="bg-gray-900/50 border border-gray-800/50 rounded-xl p-6 text-xs text-gray-500 space-y-2">
       <h3 class="text-gray-400 font-medium mb-2">Methodology</h3>
-      <p><strong class="text-gray-300">Value Score</strong> = Intelligence Index / Blended Price. Higher = more intelligence per dollar.</p>
-      <p><strong class="text-gray-300">Coding Value</strong> = Coding Index / Blended Price.</p>
-      <p><strong class="text-gray-300">Deal Score</strong> = weighted normalised composite: 50% value score + 30% coding value + 20% output speed.</p>
+      <p><strong class="text-gray-300">Best Deal</strong> = the knee of the price-vs-intelligence Pareto frontier (nothing cheaper is smarter). Ranked by intelligence gained per 10x of spend, so a cheap-but-weak model can no longer win on the ratio's tail. The Arena view uses the same frontier on Arena quality (arena_coding_elo).</p>
+      <p><strong class="text-gray-300">Value Score</strong> = Intelligence Index / Blended Price. Higher = more intelligence per dollar (shown in the table; no longer selects the Best Deal).</p>
+      <p><strong class="text-gray-300">Deal Score</strong> = weighted composite (50% value, 30% coding, 20% speed), each leg log-normalised against fixed reference ranges so scores are comparable across days; value uses a $0.05/1M price floor; models below 95% uptime are excluded from top deals. Used for the table sort and frontier tiebreaks.</p>
       <p><strong class="text-gray-300">Blended Price</strong> uses Artificial Analysis's 7:2:1 cache/input/output ratio where available; falls back to 2:1 input/output.</p>
+      <p><strong class="text-gray-300">Trends</strong> plot raw intelligence and effective blended price over time — never the day-relative deal score, which is not comparable across days. "≥T intelligence" bands are cumulative (all models at or above T).</p>
       <p id="methodology-footer">Data sourced from <a href="https://artificialanalysis.ai/leaderboards/models" class="text-indigo-400 hover:underline" target="_blank" rel="noopener">artificialanalysis.ai</a>. Analysis by <a href="https://deepseek.com" class="text-indigo-400 hover:underline" target="_blank" rel="noopener">DeepSeek</a>.</p>
     </section>
 
@@ -236,6 +280,8 @@
     let currentData = null;
     let currentDate = 'latest';
     let currentView = 'aa';
+    let trends = null;            // spec 04 timeseries.json payload (or null if absent)
+    let trendsMetric = 'cheapest'; // 'cheapest' | 'median'
 
     function switchView(view) {
       currentView = view;
@@ -406,6 +452,298 @@
       return null;
     }
 
+    // ── Pareto frontier helpers (spec 01) ────────────────────────────────
+    // Quality axis per view: intelligence for AA; Arena quality (coding_index
+    // first — never present today — then arena_elo, then arena_coding_elo).
+    function viewQuality(m, view) {
+      if (view === 'arena') {
+        if (m.coding_index != null) return m.coding_index;
+        if (m.arena_elo != null) return m.arena_elo;
+        return m.arena_coding_elo;
+      }
+      return m.intelligence_score;
+    }
+    function frontierRank(m, view) {
+      return view === 'arena' ? m.frontier_rank_arena : m.frontier_rank_intel;
+    }
+    function frontierScoreOf(m, view) {
+      return view === 'arena' ? m.frontier_score_arena : m.frontier_score_intel;
+    }
+    function isFrontierMember(m, view) {
+      return !!(view === 'arena' ? m.is_frontier_arena : m.is_frontier_intel);
+    }
+    // Prefer the explicit payload arrays; fall back to filtering models[] so old
+    // archives (which lack both) simply yield [] and the chart hides.
+    function getFrontier(data, view) {
+      var arr = view === 'arena' ? data.frontier_arena : data.frontier_intel;
+      if (arr && arr.length) return arr.slice();
+      var models = (data.models || []).filter(function(m) { return isFrontierMember(m, view); });
+      models.sort(function(a, b) { return (effPrice(a) || 0) - (effPrice(b) || 0); });
+      return models;
+    }
+
+    // ── Inline-SVG price-vs-quality scatter + frontier line ───────────────
+    function renderFrontierChart(data, view) {
+      var section = document.getElementById('frontier-section');
+      var host = document.getElementById('frontier-chart');
+      var title = document.getElementById('frontier-title');
+      var front = getFrontier(data, view);
+      if (!front || front.length === 0) {   // old archive: no frontier data
+        section.classList.add('hidden');
+        host.innerHTML = '';
+        return;
+      }
+      section.classList.remove('hidden');
+      var isArena = view === 'arena';
+      title.textContent = isArena ? 'Price vs Arena Quality Frontier' : 'Price vs Intelligence Frontier';
+
+      // Eligible = every model in this view that has price + quality (faint dots).
+      var pts = [];
+      (data.models || []).forEach(function(m) {
+        var x = effPrice(m);
+        var q = viewQuality(m, view);
+        if (x == null || x <= 0 || q == null) return;
+        pts.push({ m: m, x: x, y: q, front: isFrontierMember(m, view), rank: frontierRank(m, view) });
+      });
+      if (!pts.length) { section.classList.add('hidden'); host.innerHTML = ''; return; }
+
+      var xs = pts.map(function(p) { return p.x; });
+      var ys = pts.map(function(p) { return p.y; });
+      var lxmin = Math.log10(Math.min.apply(null, xs)) - 0.15;
+      var lxmax = Math.log10(Math.max.apply(null, xs)) + 0.15;
+      var ymin = isArena ? Math.min.apply(null, ys) : 0;
+      var ymax = Math.max.apply(null, ys);
+      var ypad = (ymax - ymin) * 0.08 || 1;
+      if (isArena) ymin -= ypad;
+      ymax += ypad;
+
+      var W = 760, H = 380, mL = 56, mR = 16, mT = 16, mB = 46;
+      var pw = W - mL - mR, ph = H - mT - mB;
+      function sx(x) { return mL + (Math.log10(x) - lxmin) / (lxmax - lxmin) * pw; }
+      function sy(y) { return mT + (1 - (y - ymin) / (ymax - ymin)) * ph; }
+
+      var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" preserveAspectRatio="xMidYMid meet" font-family="ui-sans-serif,system-ui,sans-serif">';
+
+      // X gridlines + ticks at integer powers of 10.
+      for (var k = Math.ceil(lxmin); k <= Math.floor(lxmax); k++) {
+        var xv = Math.pow(10, k);
+        var xp = sx(xv);
+        svg += '<line x1="' + xp.toFixed(1) + '" y1="' + mT + '" x2="' + xp.toFixed(1) + '" y2="' + (mT + ph) + '" stroke="#1f2937" stroke-width="1"/>';
+        svg += '<text x="' + xp.toFixed(1) + '" y="' + (mT + ph + 16) + '" fill="#9ca3af" font-size="10" text-anchor="middle">' + fmtPrice(xv) + '</text>';
+      }
+      // Y gridlines + ticks (5 steps).
+      for (var t = 0; t <= 4; t++) {
+        var yv = ymin + (ymax - ymin) * t / 4;
+        var yp = sy(yv);
+        svg += '<line x1="' + mL + '" y1="' + yp.toFixed(1) + '" x2="' + (mL + pw) + '" y2="' + yp.toFixed(1) + '" stroke="#1f2937" stroke-width="1"/>';
+        svg += '<text x="' + (mL - 6) + '" y="' + (yp + 3).toFixed(1) + '" fill="#9ca3af" font-size="10" text-anchor="end">' + yv.toFixed(0) + '</text>';
+      }
+      // Axis labels.
+      svg += '<text x="' + (mL + pw / 2) + '" y="' + (H - 4) + '" fill="#6b7280" font-size="11" text-anchor="middle">Price /1M tokens (log)</text>';
+      svg += '<text x="14" y="' + (mT + ph / 2) + '" fill="#6b7280" font-size="11" text-anchor="middle" transform="rotate(-90 14 ' + (mT + ph / 2) + ')">' + (isArena ? 'Arena quality' : 'Intelligence') + '</text>';
+
+      // Faint dots for all eligible models.
+      pts.forEach(function(p) {
+        if (p.front) return;
+        svg += '<circle cx="' + sx(p.x).toFixed(1) + '" cy="' + sy(p.y).toFixed(1) + '" r="3" fill="#4b5563" fill-opacity="0.55"><title>' +
+          escapeAttr(p.m.name) + '\n' + fmtPrice(p.x) + ' · ' + p.y.toFixed(0) + '</title></circle>';
+      });
+
+      // Frontier step line (price-ascending).
+      var fpts = pts.filter(function(p) { return p.front; }).sort(function(a, b) { return a.x - b.x; });
+      if (fpts.length > 1) {
+        var d = '';
+        fpts.forEach(function(p, i) { d += (i === 0 ? 'M' : 'L') + sx(p.x).toFixed(1) + ' ' + sy(p.y).toFixed(1) + ' '; });
+        svg += '<path d="' + d.trim() + '" fill="none" stroke="#6366f1" stroke-width="2" stroke-opacity="0.7"/>';
+      }
+      // Frontier dots + hero ring/label.
+      fpts.forEach(function(p) {
+        var cx = sx(p.x), cy = sy(p.y);
+        var isHero = p.rank === 1;
+        if (isHero) {
+          svg += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="9" fill="none" stroke="#fbbf24" stroke-width="2"/>';
+        }
+        svg += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + (isHero ? 4.5 : 4) + '" fill="' + (isHero ? '#fbbf24' : '#818cf8') + '"><title>' +
+          escapeAttr(p.m.name) + (p.m.creator ? ' (' + escapeAttr(p.m.creator) + ')' : '') + '\n' +
+          fmtPrice(p.x) + ' · ' + p.y.toFixed(0) + '\nknee score ' + (frontierScoreOf(p.m, view) != null ? frontierScoreOf(p.m, view).toFixed(3) : '—') + '</title></circle>';
+        if (isHero) {
+          var anchor = cx > mL + pw * 0.7 ? 'end' : 'start';
+          var dx = anchor === 'end' ? -12 : 12;
+          svg += '<text x="' + (cx + dx).toFixed(1) + '" y="' + (cy - 10).toFixed(1) + '" fill="#fcd34d" font-size="11" font-weight="600" text-anchor="' + anchor + '">' + escapeHtml(p.m.name) + '</text>';
+        }
+      });
+
+      svg += '</svg>';
+      host.innerHTML = svg;
+    }
+
+    // ── Trends: "the cost of capability is falling" (spec 04) ─────────────
+    // Uses RAW effective price per intelligence threshold over time — never the
+    // day-relative composite scores. Data source: timeseries.json (global `trends`).
+    var TREND_COLORS = {   // per-threshold line colour; 50 = amber "frontier-class"
+      '25': '#818cf8', '40': '#34d399', '50': '#fbbf24',
+      '20': '#f472b6', '30': '#38bdf8'   // tolerated if thresholds ever change
+    };
+    function trendColor(key) { return TREND_COLORS[key] || '#9ca3af'; }
+    function dayNum(d) { return Date.parse(d + 'T00:00:00Z') / 86400000; }
+
+    window.setTrendsMetric = function(metric) {
+      trendsMetric = metric;
+      document.querySelectorAll('.trends-metric-btn').forEach(function(b) {
+        var on = b.dataset.metric === metric;
+        b.classList.toggle('bg-indigo-600', on);
+        b.classList.toggle('text-white', on);
+        b.classList.toggle('text-gray-400', !on);
+      });
+      drawTrendsChart();
+    };
+
+    function renderTrends() {
+      var section = document.getElementById('trends-section');
+      if (!trends || !trends.days || !trends.days.length || !trends.thresholds) {
+        section.classList.add('hidden');   // missing/404 timeseries → hide gracefully
+        return;
+      }
+      section.classList.remove('hidden');
+      drawTrendsChart();
+    }
+
+    function drawTrendsChart() {
+      var host = document.getElementById('trends-chart');
+      var caption = document.getElementById('trends-caption');
+      if (!trends || !trends.days || !trends.days.length) { return; }
+      var thresholds = trends.thresholds.map(function(t) { return String(Math.round(t)); });
+      var metric = trendsMetric;
+
+      // Collect plottable points per threshold: {day, x-date, value, count}.
+      var seriesByT = {};
+      var allVals = [], allDays = [];
+      thresholds.forEach(function(k) { seriesByT[k] = []; });
+      trends.days.forEach(function(day) {
+        var dn = dayNum(day.date);
+        allDays.push(dn);
+        thresholds.forEach(function(k) {
+          var b = day.bands ? day.bands[k] : null;
+          if (!b) return;
+          var v = b[metric];
+          if (v == null || v <= 0) return;
+          seriesByT[k].push({ dn: dn, v: v, count: b.count || 0 });
+          allVals.push(v);
+        });
+      });
+      if (!allVals.length) {
+        host.innerHTML = '<p class="text-xs text-gray-500 p-4">No priced-model history yet.</p>';
+        caption.textContent = '';
+        return;
+      }
+
+      var dmin = Math.min.apply(null, allDays), dmax = Math.max.apply(null, allDays);
+      if (dmax === dmin) dmax = dmin + 1;
+      var lymin = Math.log10(Math.min.apply(null, allVals)) - 0.1;
+      var lymax = Math.log10(Math.max.apply(null, allVals)) + 0.1;
+
+      var W = 760, H = 340, mL = 52, mR = 96, mT = 14, mB = 40;
+      var pw = W - mL - mR, ph = H - mT - mB;
+      function sx(dn) { return mL + (dn - dmin) / (dmax - dmin) * pw; }
+      function sy(v) { return mT + (1 - (Math.log10(v) - lymin) / (lymax - lymin)) * ph; }
+
+      var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" width="100%" preserveAspectRatio="xMidYMid meet" font-family="ui-sans-serif,system-ui,sans-serif">';
+
+      // Y gridlines + ticks at integer powers of 10 within range.
+      for (var k = Math.ceil(lymin); k <= Math.floor(lymax); k++) {
+        var yv = Math.pow(10, k), yp = sy(yv);
+        svg += '<line x1="' + mL + '" y1="' + yp.toFixed(1) + '" x2="' + (mL + pw) + '" y2="' + yp.toFixed(1) + '" stroke="#1f2937" stroke-width="1"/>';
+        svg += '<text x="' + (mL - 6) + '" y="' + (yp + 3).toFixed(1) + '" fill="#9ca3af" font-size="10" text-anchor="end">' + fmtPrice(yv) + '</text>';
+      }
+      // X ticks: first, last, and up to 4 evenly spaced dates.
+      var nTicks = 5;
+      for (var ti = 0; ti < nTicks; ti++) {
+        var dn = dmin + (dmax - dmin) * ti / (nTicks - 1);
+        var xp = sx(dn);
+        var label = new Date(dn * 86400000).toISOString().slice(5, 10);   // MM-DD
+        svg += '<line x1="' + xp.toFixed(1) + '" y1="' + mT + '" x2="' + xp.toFixed(1) + '" y2="' + (mT + ph) + '" stroke="#1f2937" stroke-width="1"/>';
+        svg += '<text x="' + xp.toFixed(1) + '" y="' + (mT + ph + 15) + '" fill="#9ca3af" font-size="10" text-anchor="middle">' + label + '</text>';
+      }
+      // Axis labels.
+      svg += '<text x="' + (mL + pw / 2) + '" y="' + (H - 2) + '" fill="#6b7280" font-size="11" text-anchor="middle">Date</text>';
+      svg += '<text x="12" y="' + (mT + ph / 2) + '" fill="#6b7280" font-size="11" text-anchor="middle" transform="rotate(-90 12 ' + (mT + ph / 2) + ')">Price /1M tokens (log)</text>';
+
+      // One line per threshold. Segments broken across gaps (>1.5 days) and
+      // dashed where either endpoint is a low-count day (<3 models).
+      thresholds.forEach(function(key) {
+        var col = trendColor(key);
+        var pts = seriesByT[key];
+        var wide = key === '50' ? 2.6 : 1.8;   // emphasise the frontier-class line
+        for (var i = 1; i < pts.length; i++) {
+          var a = pts[i - 1], b = pts[i];
+          if (b.dn - a.dn > 1.5) continue;      // gap → break the line
+          var dashed = a.count < 3 || b.count < 3;
+          svg += '<line x1="' + sx(a.dn).toFixed(1) + '" y1="' + sy(a.v).toFixed(1) +
+            '" x2="' + sx(b.dn).toFixed(1) + '" y2="' + sy(b.v).toFixed(1) +
+            '" stroke="' + col + '" stroke-width="' + wide + '" stroke-opacity="0.85"' +
+            (dashed ? ' stroke-dasharray="3 3"' : '') + '/>';
+        }
+        pts.forEach(function(p) {
+          svg += '<circle cx="' + sx(p.dn).toFixed(1) + '" cy="' + sy(p.v).toFixed(1) +
+            '" r="' + (p.count < 3 ? 1.6 : 2.4) + '" fill="' + col + '" fill-opacity="' + (p.count < 3 ? 0.4 : 0.95) + '">' +
+            '<title>≥' + key + ' · ' + new Date(p.dn * 86400000).toISOString().slice(0, 10) + '\n' +
+            fmtPrice(p.v) + ' · ' + p.count + ' model' + (p.count === 1 ? '' : 's') + '</title></circle>';
+        });
+        // Legend entry at the line's last point (right margin).
+        if (pts.length) {
+          var last = pts[pts.length - 1];
+          var ly = Math.min(Math.max(sy(last.v), mT + 8), mT + ph - 4);
+          svg += '<text x="' + (mL + pw + 6) + '" y="' + (ly + 3).toFixed(1) + '" fill="' + col + '" font-size="10" font-weight="600">≥' + key + '</text>';
+        }
+      });
+
+      svg += '</svg>';
+      host.innerHTML = svg;
+
+      // Caption from the ≥40 line's first & last non-null cheapest (headline stat).
+      var frontierKey = thresholds.indexOf('40') >= 0 ? '40' : thresholds[thresholds.length - 1];
+      var fseries = [];
+      trends.days.forEach(function(day) {
+        var b = day.bands ? day.bands[frontierKey] : null;
+        if (b && b.cheapest != null && b.cheapest > 0) fseries.push({ d: day.date, v: b.cheapest });
+      });
+      var metricWord = metric === 'median' ? 'Median' : 'Cheapest';
+      var title = document.getElementById('trends-title');
+      if (fseries.length >= 2) {
+        var first = fseries[0], last = fseries[fseries.length - 1];
+        var days = Math.round(dayNum(last.d) - dayNum(first.d));
+        // Title must agree with the data: only claim a direction beyond ±10%.
+        var change = last.v / first.v - 1;
+        title.textContent = change <= -0.1 ? 'The cost of capability is falling'
+          : change >= 0.1 ? 'The cost of capability is rising'
+          : 'The cost of capability over time';
+        caption.textContent = metricWord + ' price to run inference at each intelligence level (raw effective $/1M, log scale). ' +
+          'The ≥' + frontierKey + '-intelligence floor went from ' + fmtPrice(first.v) + ' to ' + fmtPrice(last.v) + ' over ' + days + ' days.';
+      } else {
+        title.textContent = 'The cost of capability over time';
+        caption.textContent = metricWord + ' price to run inference at each intelligence level (raw effective $/1M, log scale).';
+      }
+    }
+
+    // Tiny inline-SVG price sparkline for a table row (spec 04 §6.5).
+    function sparklineSvg(series) {
+      if (!series || !series.points) return '';
+      var pts = series.points.slice(-30).filter(function(p) { return p.p != null; });
+      if (pts.length < 2) return '';
+      var ys = pts.map(function(p) { return p.p; });
+      var mn = Math.min.apply(null, ys), mx = Math.max.apply(null, ys);
+      var W = 80, H = 20, pad = 2;
+      function sx(i) { return pad + i / (pts.length - 1) * (W - 2 * pad); }
+      function sy(v) { return mx === mn ? H / 2 : pad + (1 - (v - mn) / (mx - mn)) * (H - 2 * pad); }
+      var d = '';
+      pts.forEach(function(p, i) { d += (i === 0 ? 'M' : 'L') + sx(i).toFixed(1) + ' ' + sy(p.p).toFixed(1) + ' '; });
+      var down = pts[pts.length - 1].p <= pts[0].p;   // cheaper = green (good)
+      var col = down ? '#34d399' : '#f87171';
+      return '<svg class="inline-block align-middle ml-1 shrink-0" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">' +
+        '<title>Price trend: ' + fmtPrice(pts[0].p) + ' → ' + fmtPrice(pts[pts.length - 1].p) + ' (' + pts.length + ' pts)</title>' +
+        '<path d="' + d.trim() + '" fill="none" stroke="' + col + '" stroke-width="1.5"/></svg>';
+    }
+
     function buildTableHead(view) {
       var cols;
       if (view === 'arena') {
@@ -456,6 +794,7 @@
         var price = effPrice(m);
 
         html += '<tr class="transition-colors" data-name="' + escapeAttr(m.name) + '"';
+        html += ' data-model-id="' + escapeAttr(m.model_id || '') + '"';
         html += ' data-intel="' + (m.intelligence_score != null ? m.intelligence_score : '') + '"';
         html += ' data-arena_elo="' + (m.arena_elo != null ? m.arena_elo : '') + '"';
         html += ' data-price="' + (price != null ? price : '') + '"';
@@ -467,7 +806,7 @@
         html += ' data-ctx="' + (m.context_window_k != null ? m.context_window_k : '') + '"';
         html += ' data-deal="' + (m.composite_deal_score != null ? m.composite_deal_score : '') + '"';
         html += ' data-arena_deal="' + (m.arena_composite_score != null ? m.arena_composite_score : '') + '"';
-        html += ' data-tier="' + (m.size_tier || 'frontier') + '"';
+        html += ' data-tier="' + (m.size_tier || 'unknown') + '"';
         html += ' data-uptime="' + (m.uptime_30m != null ? m.uptime_30m : '') + '">';
 
         // Column: Model
@@ -485,6 +824,10 @@
         }
         if (m.output_modalities && m.output_modalities.includes('image')) {
           html += '<span class="shrink-0 text-xs bg-pink-900/50 text-pink-300 px-1 py-0.5 rounded font-mono">img↑</span>';
+        }
+        // Price sparkline (spec 04): only for models with a timeseries series.
+        if (trends && trends.models && m.model_id && trends.models[m.model_id]) {
+          html += sparklineSvg(trends.models[m.model_id]);
         }
         html += '</div>';
         html += '</td>';
@@ -552,6 +895,305 @@
       return String(str).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 
+    // ── Intelligence bands (spec 02) ─────────────────────────────────────
+    // Server-authored data.bands drives three stacked sections in the AA view.
+    // Returns true when bands were rendered (caller then leaves the legacy hero
+    // hidden); false for the legacy path (Arena view or old archives w/o bands).
+    var BAND_IDS = ['flagship', 'workhorse', 'budget'];
+
+    function bandRangeText(band) {
+      if (band.max_intelligence == null) return 'Intelligence ≥ ' + Math.round(band.min_intelligence);
+      if (band.min_intelligence <= 0) return '< ' + Math.round(band.max_intelligence);
+      return Math.round(band.min_intelligence) + '–' + (Math.round(band.max_intelligence) - 1);
+    }
+
+    function bandLeaderCard(model) {
+      var price = effPrice(model);
+      var html = '<div class="hero-gradient rounded-2xl p-6 border border-indigo-800/60 shadow-xl">';
+      html += '<div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4"><div>';
+      html += '<p class="text-xs uppercase tracking-wide text-indigo-300 mb-1">Best value here</p>';
+      html += '<h3 class="text-2xl sm:text-3xl font-bold text-white">' + escapeHtml(model.name) + '</h3>';
+      if (model.creator) html += '<p class="text-indigo-300 mt-1 text-sm">' + escapeHtml(model.creator) + '</p>';
+      if (model.composite_deal_score != null) {
+        html += '<div class="mt-3 inline-flex items-center gap-2 bg-indigo-600/30 border border-indigo-500/40 rounded-full px-4 py-1.5">';
+        html += '<span class="text-xs text-indigo-300 uppercase tracking-wide">Deal Score</span>';
+        html += '<span class="text-lg font-mono font-bold text-white">' + model.composite_deal_score.toFixed(2) + '</span></div>';
+      }
+      html += '</div><div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">';
+      html += '<div class="bg-white/5 rounded-xl p-3 text-center"><p class="text-xs text-gray-400 mb-1">Intelligence</p><p class="text-xl font-mono font-bold">' + fmtScore(model.intelligence_score, 1) + '</p></div>';
+      html += '<div class="bg-white/5 rounded-xl p-3 text-center"><p class="text-xs text-gray-400 mb-1">Blended Price</p><p class="text-xl font-mono font-bold">' + fmtPrice(price) + '</p><p class="text-xs text-gray-500">/1M</p></div>';
+      html += '<div class="bg-white/5 rounded-xl p-3 text-center"><p class="text-xs text-gray-400 mb-1">Value Score</p><p class="text-xl font-mono font-bold">' + fmtScore(model.value_score, 1) + '</p></div>';
+      html += '<div class="bg-white/5 rounded-xl p-3 text-center"><p class="text-xs text-gray-400 mb-1">Speed</p><p class="text-xl font-mono font-bold">' + fmtSpeed(model.output_speed_tps) + '</p><p class="text-xs text-gray-500">tok/s</p></div>';
+      html += '</div></div></div>';
+      return html;
+    }
+
+    function bandRunnerCard(model) {
+      var price = effPrice(model);
+      var html = '<div class="bg-gray-900 border border-gray-800 rounded-xl p-4 hover:border-indigo-700/50 transition-colors">';
+      html += '<div class="flex items-start justify-between gap-2 mb-3">';
+      html += '<h4 class="font-semibold text-sm leading-snug">' + escapeHtml(model.name) + '</h4>';
+      if (model.composite_deal_score != null) {
+        html += '<span class="shrink-0 bg-indigo-900/50 text-indigo-300 text-xs font-mono px-2 py-0.5 rounded-lg">' + model.composite_deal_score.toFixed(2) + '</span>';
+      }
+      html += '</div><div class="space-y-1.5 text-xs">';
+      html += '<div class="flex justify-between text-gray-400"><span>Intelligence</span><span class="font-mono text-gray-200">' + fmtScore(model.intelligence_score, 1) + '</span></div>';
+      html += '<div class="flex justify-between text-gray-400"><span>Blended price</span><span class="font-mono text-gray-200">' + fmtPrice(price) + '/1M</span></div>';
+      html += '<div class="flex justify-between text-gray-400"><span>Value score</span><span class="font-mono text-gray-200">' + fmtScore(model.value_score, 1) + '</span></div>';
+      html += '</div></div>';
+      return html;
+    }
+
+    // ── Daily changelog (spec 03) ────────────────────────────────────────
+    // The site headline: "What changed today", rendered above the hero from
+    // data.changelog. Hidden entirely when the changelog is absent (old
+    // archives) so those days degrade to the legacy hero.
+    function clCard(inner) {
+      return '<div class="bg-gray-900 border border-gray-800 rounded-xl p-5">' + inner + '</div>';
+    }
+
+    function clPill(text, cls) {
+      return '<span class="text-xs font-medium px-2.5 py-1 rounded-full ' + cls + '">' + text + '</span>';
+    }
+
+    function renderChangelog(changelog) {
+      var section = document.getElementById('changelog-section');
+      if (!changelog) { section.classList.add('hidden'); return; }
+
+      var subtitle = document.getElementById('changelog-subtitle');
+      var banner = document.getElementById('changelog-banner');
+      var strip = document.getElementById('changelog-strip');
+      var body = document.getElementById('changelog-body');
+      banner.innerHTML = '';
+      strip.innerHTML = '';
+      body.innerHTML = '';
+
+      var comparedTo = changelog.compared_to;
+      var total = changelog.total_events || 0;
+
+      // Subtitle.
+      if (changelog.first_run) {
+        subtitle.textContent = 'First snapshot — no prior day to compare';
+      } else if (total === 0) {
+        subtitle.textContent = comparedTo ? ('No notable changes since ' + comparedTo) : 'No notable changes';
+      } else {
+        subtitle.textContent = comparedTo ? ('vs ' + comparedTo) : '';
+      }
+
+      // Data-quality banner.
+      if (changelog.data_quality === 'degraded') {
+        banner.innerHTML = '<div class="bg-amber-900/40 border border-amber-700/50 text-amber-200 text-sm rounded-lg px-4 py-3 mb-2">A data source was unavailable today; removals are hidden to avoid false alarms.</div>';
+      } else if (changelog.data_quality === 'partial') {
+        var srcs = (changelog.degraded_sources || []).join(', ');
+        banner.innerHTML = '<div class="bg-amber-900/30 border border-amber-800/40 text-amber-200/90 text-xs rounded-lg px-4 py-2 mb-2">Some data was limited today' + (srcs ? ' (' + escapeHtml(srcs) + ')' : '') + '.</div>';
+      }
+      if (changelog.scoring_changed) {
+        banner.innerHTML += '<div class="bg-gray-800/60 border border-gray-700/50 text-gray-400 text-xs rounded-lg px-4 py-2 mb-2">Scoring methodology changed vs the previous day — ranking and frontier moves are suppressed to avoid false alarms.</div>';
+      }
+
+      section.classList.remove('hidden');
+
+      // First-run or quiet day: show the note, no cards.
+      if (changelog.first_run || total === 0) return;
+
+      // Summary strip (only non-zero groups).
+      var priceCuts = (changelog.price_changes || []).filter(function(e) { return e.direction === 'cut'; }).length;
+      var priceHikes = (changelog.price_changes || []).length - priceCuts;
+      var entered = (changelog.rank_changes || []).filter(function(e) { return e.entered_top; }).length;
+      var smarter = (changelog.intelligence_changes || []).filter(function(e) { return e.direction === 'up'; }).length;
+      var frontierIn = (changelog.frontier_changes || []).filter(function(e) { return e.direction === 'entered'; }).length;
+      var pills = '';
+      if ((changelog.new_models || []).length) pills += clPill('🆕 ' + changelog.new_models.length + ' new', 'bg-indigo-900/50 text-indigo-300');
+      if (priceCuts) pills += clPill('💸 ' + priceCuts + ' price cut' + (priceCuts === 1 ? '' : 's'), 'bg-emerald-900/50 text-emerald-300');
+      if (priceHikes) pills += clPill('📈 ' + priceHikes + ' price hike' + (priceHikes === 1 ? '' : 's'), 'bg-amber-900/50 text-amber-300');
+      if (smarter) pills += clPill('🧠 ' + smarter + ' smarter', 'bg-sky-900/50 text-sky-300');
+      if (frontierIn) pills += clPill('✨ ' + frontierIn + ' hit frontier', 'bg-yellow-900/40 text-yellow-300');
+      if (entered) pills += clPill('⬆ ' + entered + ' entered top 10', 'bg-indigo-900/50 text-indigo-300');
+      if ((changelog.removed_models || []).length) pills += clPill('➖ ' + changelog.removed_models.length + ' removed', 'bg-gray-800 text-gray-400');
+      strip.innerHTML = pills;
+
+      var html = '';
+
+      // 1. Price changes.
+      var prices = changelog.price_changes || [];
+      if (prices.length) {
+        var rows = prices.map(function(e) {
+          var isCut = e.direction === 'cut';
+          var col = isCut ? 'text-emerald-400' : 'text-amber-400';
+          var arrow = isCut ? '▼' : '▲';
+          return '<div class="flex items-center justify-between gap-3 text-sm py-1">' +
+            '<span class="text-gray-200 truncate">' + escapeHtml(e.name) + '</span>' +
+            '<span class="font-mono text-gray-400 whitespace-nowrap">' + fmtPrice(e.old) + ' → ' + fmtPrice(e.new) +
+            ' <span class="' + col + '">' + arrow + ' ' + Math.abs(e.pct).toFixed(0) + '%</span></span></div>';
+        }).join('');
+        html += clCard('<p class="text-xs uppercase tracking-wide text-emerald-400 font-semibold mb-2">Price changes</p>' + rows);
+      }
+
+      // 2. New models.
+      var news = changelog.new_models || [];
+      if (news.length) {
+        var nrows = news.map(function(e) {
+          var badges = [];
+          if (e.intelligence_score != null) badges.push('intel ' + fmtScore(e.intelligence_score, 1));
+          if (e.price != null) badges.push(fmtPrice(e.price));
+          if (e.composite_deal_score != null) badges.push('deal ' + fmtScore(e.composite_deal_score, 2));
+          return '<div class="flex items-center justify-between gap-3 text-sm py-1">' +
+            '<span class="text-gray-200 truncate">' + escapeHtml(e.name) + '</span>' +
+            '<span class="font-mono text-gray-400 whitespace-nowrap">' + (badges.join(' · ') || '—') + '</span></div>';
+        }).join('');
+        html += clCard('<p class="text-xs uppercase tracking-wide text-indigo-400 font-semibold mb-2">New models</p>' + nrows);
+      }
+
+      // 3. Rank / frontier moves.
+      var ranks = changelog.rank_changes || [];
+      var fronts = changelog.frontier_changes || [];
+      if (ranks.length || fronts.length) {
+        var rrows = ranks.map(function(e) {
+          var chip = e.entered_top ? '<span class="text-xs bg-indigo-900/60 text-indigo-300 px-2 py-0.5 rounded-full ml-2">Entered top 10</span>'
+            : e.left_top ? '<span class="text-xs bg-gray-800 text-gray-400 px-2 py-0.5 rounded-full ml-2">Left top 10</span>' : '';
+          var arrow = e.direction === 'up' ? '▲' : '▼';
+          var col = e.direction === 'up' ? 'text-emerald-400' : 'text-amber-400';
+          var to = e.new_rank != null ? ('#' + e.new_rank) : 'out';
+          return '<div class="flex items-center justify-between gap-3 text-sm py-1">' +
+            '<span class="text-gray-200 truncate">' + escapeHtml(e.name) + chip + '</span>' +
+            '<span class="font-mono ' + col + ' whitespace-nowrap">' + arrow + ' #' + e.old_rank + ' → ' + to + '</span></div>';
+        }).join('');
+        var frows = fronts.map(function(e) {
+          var isIn = e.direction === 'entered';
+          return '<div class="flex items-center justify-between gap-3 text-sm py-1">' +
+            '<span class="text-gray-200 truncate">' + escapeHtml(e.name) + '</span>' +
+            '<span class="font-mono whitespace-nowrap ' + (isIn ? 'text-yellow-300' : 'text-gray-500') + '">' +
+            (isIn ? '✨ entered frontier' : 'left frontier') + '</span></div>';
+        }).join('');
+        html += clCard('<p class="text-xs uppercase tracking-wide text-indigo-400 font-semibold mb-2">Ranking &amp; frontier moves</p>' + rrows + frows);
+      }
+
+      // 4. Intelligence changes.
+      var intels = changelog.intelligence_changes || [];
+      if (intels.length) {
+        var irows = intels.map(function(e) {
+          var up = e.direction === 'up';
+          var col = up ? 'text-emerald-400' : 'text-amber-400';
+          return '<div class="flex items-center justify-between gap-3 text-sm py-1">' +
+            '<span class="text-gray-200 truncate">' + escapeHtml(e.name) + '</span>' +
+            '<span class="font-mono text-gray-400 whitespace-nowrap">' + fmtScore(e.old, 1) + ' → ' + fmtScore(e.new, 1) +
+            ' <span class="' + col + '">' + (up ? '+' : '') + fmtScore(e.delta, 1) + '</span></span></div>';
+        }).join('');
+        html += clCard('<p class="text-xs uppercase tracking-wide text-sky-400 font-semibold mb-2">Intelligence changes</p>' + irows);
+      }
+
+      // 5. Removed models (hidden entirely when data_quality degraded).
+      var removed = changelog.removed_models || [];
+      if (removed.length && changelog.data_quality !== 'degraded') {
+        var drows = removed.map(function(e) {
+          var meta = [];
+          if (e.intelligence_score != null) meta.push('intel ' + fmtScore(e.intelligence_score, 1));
+          if (e.price != null) meta.push(fmtPrice(e.price));
+          return '<div class="flex items-center justify-between gap-3 text-sm py-1">' +
+            '<span class="text-gray-400 truncate line-through">' + escapeHtml(e.name) + '</span>' +
+            '<span class="font-mono text-gray-500 whitespace-nowrap">' + (meta.join(' · ') || '') + '</span></div>';
+        }).join('');
+        html += clCard('<p class="text-xs uppercase tracking-wide text-gray-400 font-semibold mb-2">Removed</p>' + drows);
+      }
+
+      // 6. Speed changes (collapsed, secondary).
+      var speeds = changelog.speed_changes || [];
+      if (speeds.length) {
+        var srows = speeds.map(function(e) {
+          var up = e.direction === 'up';
+          return '<div class="flex items-center justify-between gap-3 text-sm py-1">' +
+            '<span class="text-gray-300 truncate">' + escapeHtml(e.name) + '</span>' +
+            '<span class="font-mono text-gray-400 whitespace-nowrap">' + fmtSpeed(e.old) + ' → ' + fmtSpeed(e.new) +
+            ' t/s <span class="' + (up ? 'text-emerald-400' : 'text-amber-400') + '">' + (up ? '+' : '') + e.pct.toFixed(0) + '%</span></span></div>';
+        }).join('');
+        html += clCard('<details><summary class="text-xs uppercase tracking-wide text-gray-500 font-semibold cursor-pointer">Speed changes (' + speeds.length + ')</summary><div class="mt-2">' + srows + '</div></details>');
+      }
+
+      body.innerHTML = html;
+    }
+
+    function renderBands(data) {
+      var stripSection = document.getElementById('cheapest-strip');
+      var bandSections = BAND_IDS.map(function(id) { return document.getElementById('band-' + id); });
+
+      var hasBands = data.bands && data.bands.length && currentView !== 'arena';
+      if (!hasBands) {
+        // Legacy path: hide band UI, let the existing hero/runners render.
+        stripSection.classList.add('hidden');
+        bandSections.forEach(function(s) { s.classList.add('hidden'); });
+        return false;
+      }
+
+      // Bands present in the AA view: hide the legacy single hero/runners.
+      document.getElementById('hero-section').classList.add('hidden');
+      document.getElementById('runners-section').classList.add('hidden');
+
+      var byId = {};
+      (data.models || []).forEach(function(m) { byId[m.model_id] = m; });
+      var bandById = {};
+      data.bands.forEach(function(b) { bandById[b.id] = b; });
+
+      // Cheapest good-enough strip.
+      var ca = data.cheapest_above || [];
+      if (ca.length) {
+        var chips = '';
+        ca.slice().sort(function(a, b) { return a.threshold - b.threshold; }).forEach(function(c) {
+          var m = c.model_id ? byId[c.model_id] : null;
+          if (!m) return;
+          var price = c.effective_price != null ? c.effective_price : effPrice(m);
+          chips += '<div class="bg-gray-900 border border-emerald-800/40 rounded-lg px-3 py-2 text-sm">';
+          chips += '<span class="text-emerald-400 font-mono">≥' + Math.round(c.threshold) + '</span>';
+          chips += ' <span class="text-gray-200">' + escapeHtml(m.name) + '</span>';
+          chips += ' <span class="text-gray-400 font-mono">' + fmtPrice(price) + '/1M</span></div>';
+        });
+        document.getElementById('cheapest-strip-body').innerHTML = chips;
+        stripSection.classList.toggle('hidden', chips === '');
+      } else {
+        stripSection.classList.add('hidden');
+      }
+
+      BAND_IDS.forEach(function(id) {
+        var section = document.getElementById('band-' + id);
+        var body = document.getElementById('band-' + id + '-body');
+        var band = bandById[id];
+        if (!band) { section.classList.add('hidden'); return; }
+
+        var leader = band.leader_id ? byId[band.leader_id] : null;
+        var cheapest = band.cheapest_id ? byId[band.cheapest_id] : null;
+
+        var html = '<div class="flex items-center flex-wrap gap-3 mb-4">';
+        html += '<p class="text-xs uppercase tracking-widest text-indigo-400 font-semibold">' + escapeHtml(band.label) + '</p>';
+        html += '<span class="text-xs bg-gray-800 text-gray-300 px-2 py-0.5 rounded-full">' + bandRangeText(band) + '</span>';
+        html += '<span class="text-xs text-gray-500">' + band.count + ' model' + (band.count === 1 ? '' : 's') + '</span></div>';
+
+        if (leader) {
+          html += bandLeaderCard(leader);
+          if (cheapest && cheapest.model_id !== leader.model_id) {
+            var cp = effPrice(cheapest);
+            html += '<p class="text-xs text-gray-400 mt-2">Cheapest here: <span class="text-gray-200">' + escapeHtml(cheapest.name) + '</span> · <span class="font-mono">' + fmtPrice(cp) + '/1M</span> · intel ' + fmtScore(cheapest.intelligence_score, 0) + '</p>';
+          }
+          // Runners: member_ids minus the leader, up to 4.
+          var runners = (band.member_ids || [])
+            .filter(function(mid) { return mid !== band.leader_id; })
+            .map(function(mid) { return byId[mid]; })
+            .filter(Boolean)
+            .slice(0, 4);
+          if (runners.length) {
+            html += '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">';
+            runners.forEach(function(m) { html += bandRunnerCard(m); });
+            html += '</div>';
+          }
+        } else {
+          html += '<p class="text-sm text-gray-500">No qualifying models in this band today.</p>';
+        }
+
+        body.innerHTML = html;
+        section.classList.remove('hidden');
+      });
+
+      return true;
+    }
+
     // ── Render entire page from JSON ────────────────────────────────────
     function renderPage(data) {
       currentData = data;
@@ -588,25 +1230,42 @@
           maxElo = Math.ceil(models[i].arena_elo / 100) * 100;
         }
       }
+      renderChangelog(data.changelog);
       renderInsights(data.insights, data.generated_at);
       renderTable(models);
       renderMethodology(data.generated_at);
+      renderFrontierChart(data, currentView);
+      renderTrends();
       initTableInteractions();
 
-      // Derive scorecard from the leaderboard's filtered/sorted state so the
-      // hero and runners-up always match the top 3 visible rows (frontier tier
-      // + Q3 intelligence/Elo filter + deal-score sort).
-      (function() {
-        var tbody = document.querySelector('#model-table tbody');
-        var visRows = Array.from(tbody.querySelectorAll('tr')).filter(function(r) {
-          return !r.classList.contains('tier-hidden') && !r.classList.contains('intel-hidden');
-        });
-        var modelMap = {};
-        allModels.forEach(function(m) { modelMap[m.name] = m; });
-        var top = visRows.slice(0, 3).map(function(r) { return modelMap[r.dataset.name]; }).filter(Boolean);
-        renderHero(top[0] || null, maxIntel, maxElo);
-        renderRunnersUp(top.slice(1), maxIntel, maxElo);
-      })();
+      // Hero/runners-up: prefer the pipeline-computed knee (JSON hero fields).
+      // Old archives lack the arena_hero field (and pre-frontier heroes are the
+      // recorded ones) — fall back to the legacy top-3-visible-rows derivation.
+      var heroField = isArena ? data.arena_hero : data.hero;
+      var runnersField = isArena ? data.arena_runners_up : data.runners_up;
+      if (heroField) {
+        renderHero(heroField, maxIntel, maxElo);
+        renderRunnersUp((runnersField || []).slice(0, 3), maxIntel, maxElo);
+      } else {
+        // Legacy fallback: derive from the leaderboard's filtered/sorted state
+        // so the hero matches the top 3 visible rows.
+        (function() {
+          var tbody = document.querySelector('#model-table tbody');
+          var visRows = Array.from(tbody.querySelectorAll('tr')).filter(function(r) {
+            return !r.classList.contains('tier-hidden') && !r.classList.contains('intel-hidden');
+          });
+          var modelMap = {};
+          allModels.forEach(function(m) { modelMap[m.name] = m; });
+          var top = visRows.slice(0, 3).map(function(r) { return modelMap[r.dataset.name]; }).filter(Boolean);
+          renderHero(top[0] || null, maxIntel, maxElo);
+          renderRunnersUp(top.slice(1), maxIntel, maxElo);
+        })();
+      }
+
+      // Bands (spec 02): AA view + present-day archives replace the single hero
+      // with three stacked band sections; renderBands hides the legacy hero in
+      // that case and no-ops (hiding band UI) for Arena / old archives.
+      renderBands(data);
     }
 
     // ── Date selector ───────────────────────────────────────────────────
@@ -657,10 +1316,12 @@
     // ── Initial load ────────────────────────────────────────────────────
     Promise.all([
       fetch('data/latest.json').then(function(r) { return r.json(); }),
-      fetch('archive/manifest.json').then(function(r) { return r.ok ? r.json() : { dates: [] }; }).catch(function() { return { dates: [] }; })
+      fetch('archive/manifest.json').then(function(r) { return r.ok ? r.json() : { dates: [] }; }).catch(function() { return { dates: [] }; }),
+      fetch('data/timeseries.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; })
     ]).then(function(results) {
       var data = results[0];
       var manifest = results[1];
+      trends = results[2];   // may be null (old deploy / first run) → trends UI hides
       buildDateSelector(manifest);
       renderPage(data);
     }).catch(function(err) {
@@ -674,7 +1335,7 @@
       var tbody  = table.querySelector('tbody');
       var currentCol = 'deal';
       var ascending  = false;
-      var activeTier = 'frontier';
+      var activeTier = 'unknown';
       var minIntel   = 0;
       var intelQ3    = 0;
 
@@ -708,7 +1369,7 @@
 
       function applyTierFilter() {
         allRows().forEach(function(row) {
-          var tier = row.dataset.tier || 'frontier';
+          var tier = row.dataset.tier || 'unknown';
           var hide = activeTier !== 'all' && tier !== activeTier;
           row.classList.toggle('tier-hidden', hide);
         });
@@ -726,7 +1387,7 @@
       function populateCounts() {
         var counts = {};
         allRows().forEach(function(r) {
-          var t = r.dataset.tier || 'frontier';
+          var t = r.dataset.tier || 'unknown';
           counts[t] = (counts[t] || 0) + 1;
         });
         counts['all'] = allRows().length;
