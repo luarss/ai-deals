@@ -9,11 +9,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from src.arena_fetcher import fetch_all_arena
+from src.bands import compute_bands, compute_cheapest_above
+from src.differ import compute_changelog, load_previous_archive
 from src.insights import generate_insights
 from src.merger import merge_records
 from src.openrouter_fetcher import fetch_all_openrouter
 from src.renderer import render_app_shell
-from src.scorer import annotate_sizes, compute_top_models, rank_models
+from src.scorer import annotate_frontier, annotate_sizes, compute_top_models, rank_models
 from src.scraper import fetch_all_pages
 from src.writer import write_archives
 
@@ -70,9 +72,12 @@ def main() -> None:
     log.info("Step 5/6: Scoring and ranking")
     annotate_sizes(merged)
     ranked = rank_models(merged)
+    annotate_frontier(ranked)  # sets frontier fields in place (spec 01)
 
     top_models = compute_top_models(ranked, "aa")
     arena_top = compute_top_models(ranked, "arena")
+    bands = compute_bands(ranked)  # spec 02: intelligence-band leaderboards
+    cheapest_above = compute_cheapest_above(ranked)
     log.info(
         "AA top deal: %s (score=%.2f) | Arena top: %s (score=%.2f)",
         top_models[0].name if top_models else "none",
@@ -81,19 +86,55 @@ def main() -> None:
         arena_top[0].arena_composite_score or 0 if arena_top else 0,
     )
 
-    # 6. AI insights
+    # 6. Daily diff — compare against the most recent previous archive on disk
+    # (spec 03). generated_at is computed here so today_str is available; the
+    # differ never raises (returns an empty changelog on any failure).
+    generated_at = datetime.now(timezone.utc)
+    today_str = generated_at.strftime("%Y-%m-%d")
+    prev_archive = load_previous_archive(today_str)
+    changelog = compute_changelog(ranked, prev_archive)
+    log.info(
+        "Changelog: %d events (%d new, %d removed, %d price, %d intel, %d rank, "
+        "%d frontier), quality=%s, scoring_changed=%s",
+        changelog.total_events,
+        len(changelog.new_models),
+        len(changelog.removed_models),
+        len(changelog.price_changes),
+        len(changelog.intelligence_changes),
+        len(changelog.rank_changes),
+        len(changelog.frontier_changes),
+        changelog.data_quality or "ok",
+        changelog.scoring_changed,
+    )
+
+    # 7. AI insights — now summarize the diff. Seed the "for reference" context
+    # with band leaders (real recommendations) when available, else the top-10.
+    id_to_model = {m.model_id: m for m in ranked}
+    insight_seed = [
+        id_to_model[b.leader_id]
+        for b in bands
+        if b.leader_id and b.leader_id in id_to_model
+    ]
     api_key = os.environ.get("DEEPSEEK_API_KEY", "")
     if api_key:
         log.info("Step 6/6: Generating AI insights via DeepSeek")
-        insights = generate_insights(top_models[:10], api_key)
+        insights = generate_insights(insight_seed or top_models[:10], changelog, api_key)
     else:
         log.warning("Step 6/6: DEEPSEEK_API_KEY not set — skipping AI insights")
         insights = ""
 
-    # 7. Write archives + app shell
+    # 8. Write archives + app shell
     log.info("Writing JSON archives and HTML app shell")
-    generated_at = datetime.now(timezone.utc)
-    write_archives(ranked, insights, generated_at, top_models=top_models, arena_top_models=arena_top)
+    write_archives(
+        ranked,
+        insights,
+        generated_at,
+        top_models=top_models,
+        arena_top_models=arena_top,
+        bands=bands,
+        cheapest_above=cheapest_above,
+        changelog=changelog,
+    )
 
     html = render_app_shell()
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
