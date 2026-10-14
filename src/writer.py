@@ -6,6 +6,7 @@ import json
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 from src.models import ArchivePayload, BandDeal, Changelog, CheapestAbove, MergedModel
 from src.timeseries import build_timeseries
@@ -77,7 +78,7 @@ def write_timeseries(generated_at: datetime) -> None:
     ts = build_timeseries(DOCS_DIR / "archive", generated_at)
     path = DOCS_DIR / "data" / "timeseries.json"
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(ts, ensure_ascii=False), encoding="utf-8")
+    path.write_text(dump_compact_json(ts), encoding="utf-8")
     log.info(
         "Timeseries written: %d days, %d model series",
         len(ts["days"]),
@@ -85,10 +86,43 @@ def write_timeseries(generated_at: datetime) -> None:
     )
 
 
+MODEL_LIST_KEYS = (
+    "models",
+    "runners_up",
+    "arena_runners_up",
+    "frontier_intel",
+    "frontier_arena",
+)
+MODEL_KEYS = ("hero", "arena_hero")
+COMPACT_SEPARATORS = (",", ":")
+
+
+def drop_null_fields(model: dict[str, Any]) -> dict[str, Any]:
+    return {key: value for key, value in model.items() if value is not None}
+
+
+def compact_archive_data(data: dict[str, Any]) -> dict[str, Any]:
+    compacted = dict(data)
+    for key in MODEL_LIST_KEYS:
+        if isinstance(compacted.get(key), list):
+            compacted[key] = [
+                drop_null_fields(model) if isinstance(model, dict) else model
+                for model in compacted[key]
+            ]
+    for key in MODEL_KEYS:
+        if isinstance(compacted.get(key), dict):
+            compacted[key] = drop_null_fields(compacted[key])
+    return compacted
+
+
+def dump_compact_json(data: Any) -> str:
+    return json.dumps(data, ensure_ascii=False, separators=COMPACT_SEPARATORS)
+
+
 def _write_json(path: Path, payload: ArchivePayload) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    data = payload.model_dump(mode="json")
-    path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    data = compact_archive_data(payload.model_dump(mode="json"))
+    path.write_text(dump_compact_json(data), encoding="utf-8")
 
 
 def _update_manifest(date_str: str) -> None:
@@ -103,6 +137,4 @@ def _update_manifest(date_str: str) -> None:
 
     dates.add(date_str)
     manifest = {"dates": sorted(dates, reverse=True)}
-    manifest_path.write_text(
-        json.dumps(manifest, ensure_ascii=False), encoding="utf-8"
-    )
+    manifest_path.write_text(dump_compact_json(manifest), encoding="utf-8")

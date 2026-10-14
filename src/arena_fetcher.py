@@ -1,7 +1,12 @@
-"""Fetch model rankings from Arena AI via Jina Reader (markdown conversion).
+"""Fetch model rankings from Arena AI via its official Hugging Face dataset.
 
-The Arena AI leaderboard is a Next.js SPA. Jina Reader (r.jina.ai) renders it
-as markdown, exposing the full 361-model table that we parse directly.
+arena.ai sits behind a Cloudflare managed challenge, so scraping the page
+(directly or through Jina Reader) only returns "Just a moment...". Arena
+publishes every leaderboard snapshot to the lmarena-ai/leaderboard-dataset
+dataset, which the Hugging Face datasets-server exposes as paginated JSON.
+The /rows endpoint is used rather than /filter because /filter regularly
+times out on the large text subset; "overall" rows are stored contiguously,
+so paging stops once they have been read.
 """
 
 from __future__ import annotations
@@ -17,294 +22,142 @@ from src.models import RawModelRecord
 
 log = logging.getLogger(__name__)
 
-JINA_READER = "https://r.jina.ai/"
-ARENA_TEXT_URL = "https://arena.ai/leaderboard/text"
-ARENA_CODE_URL = "https://arena.ai/leaderboard/code"
+DATASETS_SERVER_ROWS_URL = "https://datasets-server.huggingface.co/rows"
+ARENA_DATASET = "lmarena-ai/leaderboard-dataset"
+PAGE_SIZE = 100
+OVERALL_CATEGORY = "overall"
+
+LEADERBOARD_CONFIGS = {
+    "text": "text_style_control",
+    "code": "webdev",
+}
 
 HEADERS = {
     "User-Agent": "ai-deals/1.0",
     "Accept": "application/json",
-    "X-Return-Format": "markdown",
 }
 
-# Matches vendor and license from "Vendor · License" text
-_VENDOR_RE = re.compile(r"([^·]+?)\s*·\s*(.+)")
-
-# Extract model name and slug from a markdown link: [name](url "slug")
-_LINK_RE = re.compile(r'\[([^\]]+)\]\([^"]*(?:"([^"]+)")?\)')
+_HARNESS_SUFFIX_RE = re.compile(r"\s*\(codex-harness\)", re.IGNORECASE)
 
 
-def _derive_slug(name: str) -> str:
-    slug = name.lower().strip()
-    slug = re.sub(r"[^a-z0-9]+", "-", slug)
-    return slug.strip("-")
-
-
-def _parse_context(text: str) -> Optional[int]:
-    """Parse context string like '1M', '262K', '2000' into K-tokens."""
-    text = text.strip().upper().replace(",", "")
-    if not text or text in ("N/A", "—", "-", ""):
-        return None
-    try:
-        if text.endswith("M"):
-            return int(float(text[:-1]) * 1000)
-        if text.endswith("K"):
-            return int(float(text[:-1]))
-        if text.endswith("B"):
-            return int(float(text[:-1]) * 1_000_000)
-        return int(float(text))
-    except ValueError:
-        return None
-
-
-def _parse_int(text: str) -> Optional[int]:
-    if text is None:
-        return None
-    try:
-        return int(text.strip().replace(",", ""))
-    except (ValueError, TypeError):
-        return None
-
-
-def _parse_price(text: str) -> Optional[float]:
-    if text is None:
-        return None
-    try:
-        return float(text.strip().replace("$", "").replace(",", ""))
-    except (ValueError, TypeError):
-        return None
-
-
-# ---------------------------------------------------------------------------
-# HTTP fetch via Jina Reader
-# ---------------------------------------------------------------------------
-
-
-def _fetch_markdown(url: str, retries: int = 3, backoff: float = 3.0) -> Optional[str]:
-    """Fetch a page via Jina Reader as markdown. Returns markdown text or None."""
-    reader_url = f"{JINA_READER}{url}"
+def _fetch_page(config: str, offset: int, retries: int = 3, backoff: float = 3.0) -> Optional[dict]:
+    params = {
+        "dataset": ARENA_DATASET,
+        "config": config,
+        "split": "latest",
+        "offset": offset,
+        "length": PAGE_SIZE,
+    }
     for attempt in range(retries):
         try:
-            resp = requests.get(reader_url, headers=HEADERS, timeout=60)
-            resp.raise_for_status()
-            data = resp.json()
-            content = data.get("data", {}).get("content", "")
-            if not content:
-                log.warning("Jina Reader returned empty content for %s", url)
-                return None
-            return content
+            response = requests.get(DATASETS_SERVER_ROWS_URL, params=params, headers=HEADERS, timeout=60)
+            response.raise_for_status()
+            return response.json()
         except requests.HTTPError as exc:
-            status = exc.response.status_code if exc.response else 0
-            if status == 429:
-                wait = backoff * (2 ** attempt)
-                log.warning("Jina Reader rate-limited, retrying in %.0fs", wait)
-                time.sleep(wait)
-            else:
-                log.warning("Jina Reader HTTP %d (attempt %d/%d)", status, attempt + 1, retries)
-                if attempt == retries - 1:
-                    return None
+            status = exc.response.status_code if exc.response is not None else 0
+            log.warning("Arena dataset HTTP %d for %s (attempt %d/%d)", status, config, attempt + 1, retries)
         except Exception as exc:
-            log.warning("Jina Reader error: %s (attempt %d/%d)", exc, attempt + 1, retries)
-            if attempt == retries - 1:
-                return None
-        time.sleep(backoff)
+            log.warning("Arena dataset error for %s: %s (attempt %d/%d)", config, exc, attempt + 1, retries)
+        if attempt < retries - 1:
+            time.sleep(backoff * (2 ** attempt))
     return None
 
 
-# ---------------------------------------------------------------------------
-# Parsing
-# ---------------------------------------------------------------------------
+def _fetch_overall_rows(config: str) -> Optional[list[dict]]:
+    overall_rows: list[dict] = []
+    offset = 0
+    total = None
+    while total is None or offset < total:
+        page = _fetch_page(config, offset)
+        if page is None:
+            return overall_rows or None
+        page_rows = [entry["row"] for entry in page.get("rows", [])]
+        if not page_rows:
+            break
+        total = page.get("num_rows_total", 0)
+        page_overall = [row for row in page_rows if row.get("category") == OVERALL_CATEGORY]
+        if overall_rows and not page_overall:
+            break
+        overall_rows.extend(page_overall)
+        offset += len(page_rows)
+    return overall_rows
 
 
-def _parse_table_cell(cell: str, leaderboard: str) -> dict:
-    """Parse a single model's table row cells into a field dict."""
-    fields: dict = {"source_pages": [f"arena-{leaderboard}"]}
+def _strip_harness(text: str) -> str:
+    return _HARNESS_SUFFIX_RE.sub("", text).strip()
 
-    # --- Cell 0: Model link + vendor info ---
-    # Format: [model-name](url "slug") Vendor · License
-    cell0 = cell.strip()
-    link_match = _LINK_RE.search(cell0)
-    if link_match:
-        fields["name"] = link_match.group(1).strip()
-        if link_match.group(2):
-            fields["model_id"] = link_match.group(2).strip()
-        # Vendor + license text is everything after the link
-        rest = cell0[link_match.end():].strip()
+
+def _confidence_interval(row: dict) -> Optional[float]:
+    lower = row.get("rating_lower")
+    upper = row.get("rating_upper")
+    if lower is None or upper is None:
+        return None
+    return round((upper - lower) / 2)
+
+
+def _optional_int(value) -> Optional[int]:
+    if value is None:
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _row_to_record(row: dict, leaderboard: str) -> Optional[RawModelRecord]:
+    model_name = row.get("model_name")
+    rating = row.get("rating")
+    if not model_name or rating is None:
+        return None
+
+    name = _strip_harness(model_name)
+    fields: dict = {
+        "model_id": name,
+        "name": name,
+        "source_pages": [f"arena-{leaderboard}"],
+        "arena_votes": _optional_int(row.get("vote_count")),
+    }
+
+    organization = (row.get("organization") or "").strip()
+    if organization and organization.lower() not in ("n/a", "unknown"):
+        fields["creator"] = organization
+
+    if leaderboard == "text":
+        fields["arena_elo"] = round(rating)
+        fields["arena_ci"] = _confidence_interval(row)
     else:
-        fields["name"] = cell0
-        rest = ""
+        fields["arena_coding_elo"] = round(rating)
 
-    # Strip harness annotations like "(codex-harness)" so text and code
-    # leaderboard entries for the same model merge correctly.
-    fields["name"] = re.sub(r"\s*\(codex-harness\)", "", fields["name"], flags=re.IGNORECASE)
-    if "model_id" in fields:
-        fields["model_id"] = re.sub(r"\s*\(codex-harness\)", "", fields["model_id"], flags=re.IGNORECASE)
-
-    # Extract vendor from "Vendor · License"
-    vm = _VENDOR_RE.match(rest)
-    if vm:
-        vendor = vm.group(1).strip()
-        if vendor and vendor.lower() not in ("n/a", "unknown"):
-            fields["creator"] = vendor
-
-    # Derive slug if not from link
-    if "model_id" not in fields:
-        fields["model_id"] = _derive_slug(fields["name"])
-
-    return fields
+    try:
+        return RawModelRecord(**fields)
+    except Exception as exc:
+        log.debug("Skipping Arena model %s: %s", name, exc)
+        return None
 
 
-def _parse_score_cell(cell: str) -> tuple[Optional[int], Optional[int]]:
-    """Parse score cell like '1502±4' or '1567+10/-10'."""
-    cell = cell.strip()
-    # Remove trailing annotations
-    cell = re.sub(r"\s*(Preliminary|final|confirmed)\s*", "", cell, flags=re.IGNORECASE)
-    if "±" in cell:
-        parts = cell.split("±")
-        score = _parse_int(parts[0])
-        ci = _parse_int(parts[1]) if len(parts) > 1 else None
-        return score, ci
-    # Code leaderboard format: "1567+10/-10"
-    m = re.match(r"(\d+)\+(\d+)/-(\d+)", cell)
-    if m:
-        score = _parse_int(m.group(1))
-        # Average the +/- as a single CI value
-        ci = (_parse_int(m.group(2)) + _parse_int(m.group(3))) // 2
-        return score, ci
-    # Plain integer
-    score = _parse_int(cell)
-    return score, None
-
-
-def _parse_price_cell(cell: str) -> tuple[Optional[float], Optional[float]]:
-    """Parse price cell like '$5 / $25' or 'N/A'."""
-    cell = cell.strip()
-    if cell.upper() in ("N/A", "—", "-", ""):
-        return None, None
-    parts = cell.split("/")
-    inp = _parse_price(parts[0]) if len(parts) > 0 else None
-    out = _parse_price(parts[1]) if len(parts) > 1 else None
-    return inp, out
-
-
-def _parse_markdown_table(markdown: str, leaderboard: str) -> list[RawModelRecord]:
-    """Parse the Arena leaderboard markdown table."""
+def parse_rows(rows: list[dict], leaderboard: str) -> list[RawModelRecord]:
     records: list[RawModelRecord] = []
-
-    # Find the table: lines starting with "| Rank |"
-    lines = markdown.split("\n")
-    header_idx = None
-    for i, line in enumerate(lines):
-        if line.startswith("| Rank |"):
-            header_idx = i
-            break
-
-    if header_idx is None:
-        log.warning("Could not find leaderboard table in markdown")
-        return []
-
-    # Parse header to find column positions
-    header_cells = [c.strip() for c in lines[header_idx].split("|")]
-    # Skip the empty first/last from split
-    header_cells = [c for c in header_cells if c]
-
-    # Map header names to indices
-    col_map: dict[str, int] = {}
-    for idx, h in enumerate(header_cells):
-        h_lower = h.lower().replace("$", "").strip()
-        if "rank" in h_lower and "spread" not in h_lower:
-            col_map["rank"] = idx
-        elif "model" in h_lower:
-            col_map["model"] = idx
-        elif "score" in h_lower:
-            col_map["score"] = idx
-        elif "votes" in h_lower:
-            col_map["votes"] = idx
-        elif "price" in h_lower:
-            col_map["price"] = idx
-        elif "context" in h_lower:
-            col_map["context"] = idx
-
-    # Data rows start after header + separator
-    data_start = header_idx + 2
-
-    for line in lines[data_start:]:
-        if not line.startswith("|"):
-            break
-
-        cells = [c.strip() for c in line.split("|")]
-        # Remove leading/trailing empty strings from split
-        cells = [c for c in cells if c or cells.index(c) > 0]
-
-        # Get cell by column
-        def _cell(col_name: str) -> str:
-            idx = col_map.get(col_name)
-            if idx is not None and idx < len(cells):
-                return cells[idx]
-            return ""
-
-        model_cell = _cell("model")
-        if not model_cell:
+    for row in rows:
+        if row.get("category", OVERALL_CATEGORY) != OVERALL_CATEGORY:
             continue
-
-        fields = _parse_table_cell(model_cell, leaderboard)
-
-        # Score: Elo ± CI
-        score_cell = _cell("score")
-        if score_cell:
-            score, ci = _parse_score_cell(score_cell)
-            if leaderboard == "text":
-                fields["arena_elo"] = score
-                fields["arena_ci"] = ci
-            elif leaderboard == "code":
-                fields["arena_coding_elo"] = score
-
-        # Votes
-        votes_cell = _cell("votes")
-        if votes_cell:
-            fields["arena_votes"] = _parse_int(votes_cell)
-
-        # Price
-        price_cell = _cell("price")
-        if price_cell:
-            pin, pout = _parse_price_cell(price_cell)
-            if pin is not None:
-                fields["price_input"] = pin
-            if pout is not None:
-                fields["price_output"] = pout
-
-        # Context
-        ctx_cell = _cell("context")
-        if ctx_cell:
-            ctx = _parse_context(ctx_cell)
-            if ctx is not None:
-                fields["context_window_k"] = ctx
-
-        try:
-            records.append(RawModelRecord(**fields))
-        except Exception as exc:
-            log.debug("Skipping Arena model %s: %s", fields.get("name", "?"), exc)
-
+        record = _row_to_record(row, leaderboard)
+        if record is not None:
+            records.append(record)
     return records
 
 
-# ---------------------------------------------------------------------------
-# Public interface
-# ---------------------------------------------------------------------------
-
-
 def fetch_all_arena() -> list[RawModelRecord]:
-    """Fetch text and code leaderboards from Arena AI via Jina Reader."""
+    """Fetch the text and code (WebDev) overall leaderboards from Arena AI."""
     all_records: list[RawModelRecord] = []
 
-    for lb, url in [("text", ARENA_TEXT_URL), ("code", ARENA_CODE_URL)]:
-        log.info("Fetching Arena %s leaderboard via Jina Reader...", lb)
-        markdown = _fetch_markdown(url)
-        if markdown is None:
-            log.warning("Failed to fetch Arena %s, skipping", lb)
+    for leaderboard, config in LEADERBOARD_CONFIGS.items():
+        log.info("Fetching Arena %s leaderboard (%s) from Hugging Face...", leaderboard, config)
+        rows = _fetch_overall_rows(config)
+        if rows is None:
+            log.warning("Failed to fetch Arena %s, skipping", leaderboard)
             continue
-        records = _parse_markdown_table(markdown, lb)
-        log.info("Arena %s: %d models", lb, len(records))
+        records = parse_rows(rows, leaderboard)
+        log.info("Arena %s: %d models", leaderboard, len(records))
         all_records.extend(records)
 
     return all_records

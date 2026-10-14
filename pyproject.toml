@@ -23,3 +23,8 @@ packages = ["src"]
 dev = [
     "pytest>=9.1.1",
 ]
+
+[tool.pytest.ini_options]
+markers = [
+    "artifact: checks the committed docs/data/latest.json publish (deselect with -m 'not artifact')",
+]

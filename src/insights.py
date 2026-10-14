@@ -10,6 +10,7 @@ The DEEPSEEK_API_KEY-absent / error path still returns FALLBACK so the page rend
 from __future__ import annotations
 
 import logging
+import re
 from datetime import date
 from typing import Optional
 
@@ -160,15 +161,63 @@ def build_user_prompt(
     return "\n".join(lines)
 
 
+MODEL = "deepseek-v4-flash"
+BASE_URL = "https://api.deepseek.com/v1"
+MAX_TOKENS = 4000
+SENTENCE_END = re.compile(r"[.!?][\"'\u2019\u201d)]?(?=\s)")
+THINK_BLOCK = re.compile(r"<think>.*?(?:</think>|$)", re.DOTALL)
+
+
+def _strip_reasoning(text: str) -> str:
+    return THINK_BLOCK.sub("", text).strip()
+
+
+def _trim_to_last_sentence(text: str) -> str:
+    sentence_ends = list(SENTENCE_END.finditer(text))
+    if not sentence_ends:
+        return ""
+    return text[: sentence_ends[-1].end()].strip()
+
+
+def extract_brief(response) -> str:
+    """Return usable brief text from a chat completion, or "" if there is none.
+
+    Strips any inline reasoning, and when the model hit the token limit keeps
+    only the complete sentences so a cut-off brief is never published.
+    """
+    choice = response.choices[0]
+    finish_reason = getattr(choice, "finish_reason", None)
+    text = _strip_reasoning(choice.message.content or "")
+    if finish_reason == "length":
+        text = _trim_to_last_sentence(text)
+    return text
+
+
+def _log_response(response) -> None:
+    choice = response.choices[0]
+    usage = getattr(response, "usage", None)
+    reasoning = getattr(choice.message, "reasoning_content", None) or ""
+    log.info(
+        "DeepSeek response: model=%s finish_reason=%s usage=%s "
+        "content_chars=%d reasoning_chars=%d",
+        getattr(response, "model", None),
+        getattr(choice, "finish_reason", None),
+        usage,
+        len(choice.message.content or ""),
+        len(reasoning),
+    )
+
+
 def generate_insights(
     top_models: list[MergedModel], changelog: Optional[Changelog], api_key: str
 ) -> str:
     """Call DeepSeek and return a prose daily brief summarizing the changelog.
 
-    Falls back to FALLBACK constant on any error so the page always renders.
+    Never returns an empty string: any error, empty reply, or reply with no
+    complete sentence yields FALLBACK so the page always renders something.
     """
     try:
-        from openai import OpenAI  # lazy import — optional at module load
+        from openai import OpenAI
     except ImportError:
         log.warning("openai package not installed; skipping insights")
         return FALLBACK
@@ -176,18 +225,26 @@ def generate_insights(
     user_prompt = build_user_prompt(top_models, changelog, date.today().isoformat())
 
     try:
-        client = OpenAI(api_key=api_key, base_url="https://api.deepseek.com/v1")
+        client = OpenAI(api_key=api_key, base_url=BASE_URL)
         response = client.chat.completions.create(
-            model="deepseek-v4-flash",
+            model=MODEL,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": user_prompt},
             ],
-            max_tokens=500,
+            max_tokens=MAX_TOKENS,
             temperature=0.4,
         )
-        text = response.choices[0].message.content or ""
-        return text.strip()
+        _log_response(response)
+        brief = extract_brief(response)
     except Exception as exc:
         log.warning("DeepSeek API error (%s): %s", type(exc).__name__, exc)
         return FALLBACK
+
+    if not brief:
+        log.warning(
+            "DeepSeek returned no usable brief (finish_reason=%s); using fallback",
+            getattr(response.choices[0], "finish_reason", None),
+        )
+        return FALLBACK
+    return brief

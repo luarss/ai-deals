@@ -1,25 +1,26 @@
 """Fetch pages from artificialanalysis.ai and extract model data.
 
-The site is a Next.js app with server-rendered HTML. Each page exposes a
-<table> with a two-row header and one row per model. We parse that table
-by locating column positions from row 1's header text, then reading data
-from rows 2+.
+The site is a Next.js App Router app. The leaderboard page streams its full
+model dataset inside React Server Component flight chunks
+(``self.__next_f.push([1, "..."])`` scripts). That payload carries raw
+per-model fields (``intelligenceIndex``, ``price1mInputTokens``,
+``price1mOutputTokens``, ``cacheHitPrice``, ``medianOutputTokensPerSecond``,
+``contextWindowTokens`` ...) and is the primary source.
 
-Page-specific column schemas (discovered empirically):
+The server-rendered <table> is kept as a fallback. Its current columns are:
+  Model | Context Window | Creator | Artificial Analysis Intelligence Index |
+  Cost per Task USD | Median Tokens/s | Latency First Chunk (s) |
+  Total Response (s) | Further Analysis (slug hrefs)
+"Cost per Task" is not a per-token price, so the table yields no prices.
+Estimated intelligence values render with a trailing "*" (e.g. "35 *").
 
-leaderboard (/leaderboards/models):
-  0: Model name  1: Context  2: Creator  3: Intelligence  4: Blended price
-  5: Speed(t/s)  6: Latency  7: Total response  8: Further Analysis (slug hrefs)
-
-coding (/models/capabilities/coding):
-  Similar structure; "Coding Index" column may appear in position 3 or 4.
-
-livecodebench (/evaluations/livecodebench):
-  0: Model name  1: Score(%)  2+: other columns
+The leaderboard no longer publishes a per-model Coding Index or LiveCodeBench
+score, so those fields stay empty.
 """
 
 from __future__ import annotations
 
+import json
 import logging
 import re
 import time
@@ -94,12 +95,10 @@ def _cell_text(cell: Tag) -> str:
 def _parse_float(text: str) -> Optional[float]:
     """Strip currency/percent symbols and parse as float. Returns None on failure."""
     cleaned = text.strip().replace("$", "").replace("%", "").replace(",", "")
-    if cleaned in ("", "—", "-", "N/A", "n/a"):
+    match = re.match(r"^-?\d+(?:\.\d+)?", cleaned)
+    if not match:
         return None
-    try:
-        return float(cleaned)
-    except ValueError:
-        return None
+    return float(match.group(0))
 
 
 def _parse_context(text: str) -> Optional[int]:
@@ -297,14 +296,12 @@ def extract_faq_jsonld(html: str, page_key: str) -> list[RawModelRecord]:
       "top models by Intelligence Index are: 1. GPT-5.5 (xhigh) (60), 2. ..."
     We parse this for name + intelligence score as a cross-check.
     """
-    import json as _json
-
     soup = BeautifulSoup(html, "lxml")
     records: list[RawModelRecord] = []
 
     for tag in soup.find_all("script", type="application/ld+json"):
         try:
-            blob = _json.loads(tag.string or "")
+            blob = json.loads(tag.string or "")
         except Exception:
             continue
 
@@ -334,6 +331,125 @@ def extract_faq_jsonld(html: str, page_key: str) -> list[RawModelRecord]:
 
 
 # ---------------------------------------------------------------------------
+# Embedded RSC flight payload (primary data source)
+# ---------------------------------------------------------------------------
+
+FLIGHT_PUSH_PATTERN = re.compile(r"^\s*self\.__next_f\.push\((.*)\)\s*;?\s*$", re.S)
+MODELS_ARRAY_PATTERN = re.compile(r'"models"\s*:\s*\[')
+MODEL_DATA_KEYS = ("intelligenceIndex", "price1mInputTokens", "medianOutputTokensPerSecond")
+
+
+def _flight_payload(html: str) -> str:
+    """Concatenate the string chunks pushed to ``self.__next_f`` by the page."""
+    soup = BeautifulSoup(html, "lxml")
+    parts: list[str] = []
+    for script in soup.find_all("script"):
+        match = FLIGHT_PUSH_PATTERN.match(script.string or "")
+        if not match:
+            continue
+        try:
+            chunk = json.loads(match.group(1))
+        except ValueError:
+            continue
+        if len(chunk) > 1 and chunk[0] == 1 and isinstance(chunk[1], str):
+            parts.append(chunk[1])
+    return "".join(parts)
+
+
+def _is_model_data(entry: object) -> bool:
+    return isinstance(entry, dict) and "slug" in entry and any(key in entry for key in MODEL_DATA_KEYS)
+
+
+def _find_model_dataset(payload: str) -> list[dict]:
+    """Return the largest embedded ``"models": [...]`` array of model data objects."""
+    decoder = json.JSONDecoder()
+    best: list[dict] = []
+    for match in MODELS_ARRAY_PATTERN.finditer(payload):
+        try:
+            candidate, _ = decoder.raw_decode(payload, match.end() - 1)
+        except ValueError:
+            continue
+        models = [entry for entry in candidate if _is_model_data(entry)]
+        if len(models) > len(best):
+            best = models
+    return best
+
+
+def _optional_float(value: object) -> Optional[float]:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    return float(value)
+
+
+def _rounded(value: object, digits: int) -> Optional[float]:
+    number = _optional_float(value)
+    return None if number is None else round(number, digits)
+
+
+def blended_price(
+    price_input: Optional[float],
+    price_output: Optional[float],
+    cache_hit_price: Optional[float],
+) -> Optional[float]:
+    """Artificial Analysis 7:2:1 cached-input/input/output blend in $/1M tokens.
+
+    Without a published cache-hit price, cached input is billed at the input rate.
+    """
+    if price_input is None or price_output is None:
+        return None
+    cached_input = cache_hit_price if cache_hit_price is not None else price_input
+    return round((7 * cached_input + 2 * price_input + price_output) / 10, 6)
+
+
+def _context_window_k(tokens: object) -> Optional[int]:
+    token_count = _optional_float(tokens)
+    if token_count is None or token_count <= 0:
+        return None
+    return round(token_count / 1000)
+
+
+def _record_from_model_data(entry: dict, page_key: str) -> Optional[RawModelRecord]:
+    slug = entry.get("slug")
+    name = entry.get("shortName") or entry.get("name")
+    if not slug or not name:
+        return None
+    price_input = _optional_float(entry.get("price1mInputTokens"))
+    price_output = _optional_float(entry.get("price1mOutputTokens"))
+    cache_hit_price = _optional_float(entry.get("cacheHitPrice"))
+    return RawModelRecord(
+        model_id=slug,
+        name=name.strip(),
+        creator=entry.get("modelCreatorName"),
+        intelligence_score=_rounded(entry.get("intelligenceIndex"), 1),
+        price_input=price_input,
+        price_output=price_output,
+        price_blended=blended_price(price_input, price_output, cache_hit_price),
+        output_speed_tps=_rounded(entry.get("medianOutputTokensPerSecond"), 1),
+        context_window_k=_context_window_k(entry.get("contextWindowTokens")),
+        source_pages=[page_key],
+    )
+
+
+def extract_embedded_models(html: str, page_key: str) -> list[RawModelRecord]:
+    """Parse the model dataset embedded in the page's RSC flight payload.
+
+    Deprecated models are dropped, matching the rows the leaderboard table shows.
+    """
+    dataset = _find_model_dataset(_flight_payload(html))
+    records: list[RawModelRecord] = []
+    seen_slugs: set[str] = set()
+    for entry in dataset:
+        if entry.get("deprecated") or entry.get("slug") in seen_slugs:
+            continue
+        record = _record_from_model_data(entry, page_key)
+        if record is None:
+            continue
+        seen_slugs.add(record.model_id)
+        records.append(record)
+    return records
+
+
+# ---------------------------------------------------------------------------
 # Public interface
 # ---------------------------------------------------------------------------
 
@@ -346,8 +462,11 @@ def scrape_page(page_key: str, url: str) -> list[RawModelRecord]:
         log.warning("Empty response for %s, skipping", page_key)
         return []
 
-    records = extract_table(html, page_key)
-    log.info("Table parse: %d records from %s", len(records), page_key)
+    records = extract_embedded_models(html, page_key)
+    log.info("Embedded payload parse: %d records from %s", len(records), page_key)
+    if not records:
+        records = extract_table(html, page_key)
+        log.info("Table parse: %d records from %s", len(records), page_key)
 
     # Supplement with FAQ JSON-LD for intelligence scores (leaderboard page only)
     if page_key == "leaderboard" and len(records) < 5:

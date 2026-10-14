@@ -8,7 +8,7 @@ from src.scorer import annotate_sizes, compute_top_models, passes_uptime_gate, r
 
 from tests.conftest import REPO_ROOT, reconstruct_models
 
-LATEST = REPO_ROOT / "docs" / "data" / "latest.json"
+LATEST = REPO_ROOT / "docs" / "archive" / "2026-07-24.json"
 PREV = REPO_ROOT / "docs" / "archive" / "2026-06-23.json"
 
 

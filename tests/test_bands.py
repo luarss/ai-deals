@@ -233,3 +233,94 @@ def test_real_data_bands():
     # The >=40 answer must itself be a >=40-intelligence model.
     top = by_id[ca[40.0].model_id]
     assert top.intelligence_score is not None and top.intelligence_score >= 40.0
+
+
+LATEST_2026_10_13_SLICE: list[dict] = [
+    {"model_id": "claude-haiku-5-5", "name": "Anthropic: Claude Haiku 5.5", "intelligence_score": 43.0,
+     "openrouter_price_input": 0.1, "openrouter_price_output": 0.5, "output_speed_tps": 236.0,
+     "uptime_30m": 100.0, "uptime_1d": 100.0},
+    {"model_id": "claude-sonnet-5-5", "name": "Claude Sonnet 5.5 (max with fallback)", "intelligence_score": 56.0,
+     "openrouter_price_input": 2.0, "openrouter_price_output": 10.0, "output_speed_tps": 135.0,
+     "uptime_30m": 100.0, "uptime_1d": 100.0},
+    {"model_id": "mimo-v2-6-pro", "name": "Xiaomi: MiMo-V2.6-Pro", "intelligence_score": 46.0,
+     "openrouter_price_input": 0.435, "openrouter_price_output": 0.87, "output_speed_tps": 48.0,
+     "uptime_30m": 100.0, "uptime_1d": 99.86111111111111},
+    {"model_id": "ling-3-0-flash-vl", "name": "inclusionAI: Ling 3.0 Flash VL", "intelligence_score": 25.0,
+     "openrouter_price_input": 0.021, "openrouter_price_output": 0.0616, "output_speed_tps": None,
+     "uptime_30m": 100.0, "uptime_1d": 100.0},
+    {"model_id": "deepseek-v4-1-flash", "name": "DeepSeek: DeepSeek V4.1 Flash", "intelligence_score": 39.0,
+     "openrouter_price_input": 0.0441, "openrouter_price_output": 0.63, "output_speed_tps": 199.0,
+     "uptime_30m": 100.0, "uptime_1d": 100.0},
+    {"model_id": "hy3", "name": "Tencent: Hy3", "intelligence_score": 25.0,
+     "openrouter_price_input": 0.132, "openrouter_price_output": 0.528, "output_speed_tps": 84.0,
+     "uptime_30m": 100.0, "uptime_1d": 100.0},
+    {"model_id": "ling-3-0-flash-fin", "name": "inclusionAI: Ling 3.0 Flash Fin", "intelligence_score": 23.0,
+     "openrouter_price_input": 0.042, "openrouter_price_output": 0.1232, "output_speed_tps": 317.0,
+     "uptime_30m": 100.0, "uptime_1d": 100.0},
+    {"model_id": "gpt-oss-20b", "name": "OpenAI: gpt-oss-20b", "intelligence_score": 9.0,
+     "openrouter_price_input": 0.018, "openrouter_price_output": 0.09, "output_speed_tps": 223.0,
+     "uptime_30m": 100.0, "uptime_1d": 100.0},
+    {"model_id": "mercury-2-5", "name": "Inception: Mercury 2.5", "intelligence_score": 12.0,
+     "openrouter_price_input": 0.04, "openrouter_price_output": 0.15, "output_speed_tps": 689.0,
+     "uptime_30m": 76.66666666666667, "uptime_1d": 98.47222222222223},
+    {"model_id": "claude-opus-5-5-xhigh", "name": "Claude Opus 5.5 (xhigh with fallback)", "intelligence_score": 56.0,
+     "output_speed_tps": 81.0},
+    {"model_id": "gpt-5-3-codex", "name": "GPT-5.3 Codex (xhigh)", "intelligence_score": None,
+     "openrouter_price_input": 1.75, "openrouter_price_output": 14.0, "output_speed_tps": 113.0,
+     "uptime_30m": 100.0, "uptime_1d": 100.0},
+]
+
+
+def _run_pipeline_on_real_slice() -> list[MergedModel]:
+    from src.scorer import annotate_frontier, annotate_sizes, rank_models
+
+    models = [
+        MergedModel(price_blended=None, price_input=None, price_output=None, **row)
+        for row in LATEST_2026_10_13_SLICE
+    ]
+    annotate_sizes(models)
+    ranked = rank_models(models)
+    annotate_frontier(ranked)
+    return ranked
+
+
+def test_real_slice_every_intel_and_priced_model_is_scored():
+    ranked = _run_pipeline_on_real_slice()
+    for model in ranked:
+        has_inputs = model.intelligence_score is not None and model.effective_price() is not None
+        assert (model.composite_deal_score is not None) == has_inputs, model.model_id
+
+
+def test_real_slice_missing_speed_is_imputed_not_excluded():
+    ranked = _run_pipeline_on_real_slice()
+    ling_vl = next(m for m in ranked if m.model_id == "ling-3-0-flash-vl")
+    assert ling_vl.output_speed_tps is None
+    assert ling_vl.size_tier == "unknown"
+    assert ling_vl.composite_deal_score == pytest.approx(0.75)
+
+
+def test_real_slice_bands_are_populated():
+    ranked = _run_pipeline_on_real_slice()
+    bands = {band.id: band for band in compute_bands(ranked)}
+    assert {band_id: band.count for band_id, band in bands.items()} == {
+        "flagship": 3,
+        "workhorse": 3,
+        "budget": 3,
+    }
+    assert bands["flagship"].leader_id == "claude-haiku-5-5"
+    assert bands["workhorse"].leader_id == "ling-3-0-flash-vl"
+    assert bands["budget"].leader_id == "ling-3-0-flash-fin"
+    assert bands["flagship"].cheapest_id == "claude-haiku-5-5"
+    assert bands["workhorse"].cheapest_id == "ling-3-0-flash-vl"
+    assert bands["budget"].cheapest_id == "gpt-oss-20b"
+    assert "claude-opus-5-5-xhigh" not in {mid for band in bands.values() for mid in band.member_ids}
+
+
+def test_real_slice_cheapest_above_and_hero():
+    from src.scorer import compute_top_models
+
+    ranked = _run_pipeline_on_real_slice()
+    cheapest = {entry.threshold: entry.model_id for entry in compute_cheapest_above(ranked)}
+    assert cheapest == {25.0: "ling-3-0-flash-vl", 40.0: "claude-haiku-5-5", 50.0: "claude-sonnet-5-5"}
+    assert compute_top_models(ranked)[0].model_id == "claude-haiku-5-5"
+    assert sum(m.is_frontier_intel for m in ranked) >= 3

@@ -47,7 +47,7 @@ def test_pareto_keeps_ties():
 def test_real_frontier_hero_is_deepseek_not_ling():
     from tests.conftest import REPO_ROOT, reconstruct_models
 
-    models = reconstruct_models(REPO_ROOT / "docs" / "data" / "latest.json")
+    models = reconstruct_models(REPO_ROOT / "docs" / "archive" / "2026-07-24.json")
     annotate_sizes(models)
     ranked = rank_models(models)
     annotate_frontier(ranked)

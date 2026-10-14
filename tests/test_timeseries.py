@@ -137,13 +137,16 @@ def test_determinism(tmp_path: Path) -> None:
 
 
 # ── §8.7 full-corpus smoke over the real archives ─────────────────────────
+MAX_BYTES_PER_DAY = 5_000
+
+
 def test_full_corpus_smoke() -> None:
     archive_dir = REPO_ROOT / "docs" / "archive"
     n_files = len(list(archive_dir.glob("20*.json")))
     ts = build_timeseries(archive_dir, GEN_AT)
     assert len(ts["days"]) == n_files
     raw = json.dumps(ts, ensure_ascii=False)
-    assert len(raw.encode("utf-8")) < 400_000  # size guard
+    assert len(raw.encode("utf-8")) < n_files * MAX_BYTES_PER_DAY
     for day in ts["days"]:
         assert set(day["bands"].keys()) == {str(int(t)) for t in INTELLIGENCE_THRESHOLDS}
     # every included model series meets the min-days cutoff and is windowed

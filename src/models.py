@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Optional
 from pydantic import BaseModel, Field, model_validator
 
 # $/1M tokens. Below this the intelligence/price ratio is degenerate (a
@@ -106,6 +106,7 @@ class Changelog(BaseModel):
     scoring_changed: bool = False
     data_quality: Optional[str] = None  # None | "partial" | "degraded"
     degraded_sources: list[str] = Field(default_factory=list)
+    health: Optional[dict[str, Any]] = None
     total_events: int = 0
     new_models: list["ChangeEvent"] = Field(default_factory=list)
     removed_models: list["ChangeEvent"] = Field(default_factory=list)

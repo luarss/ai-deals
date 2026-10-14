@@ -11,7 +11,8 @@ from pathlib import Path
 from src.arena_fetcher import fetch_all_arena
 from src.bands import compute_bands, compute_cheapest_above
 from src.differ import compute_changelog, load_previous_archive
-from src.insights import generate_insights
+from src.health import apply_to_changelog, build_health_report, enforce, log_report
+from src.insights import FALLBACK, generate_insights
 from src.merger import merge_records
 from src.openrouter_fetcher import fetch_all_openrouter
 from src.renderer import render_app_shell
@@ -56,6 +57,7 @@ def main() -> None:
     except Exception as exc:
         log.warning("OpenRouter fetch failed (%s), continuing without it", exc)
         or_records = []
+    log.info("OpenRouter: %d raw records", len(or_records))
 
     all_records = aa_records + arena_records + or_records
     log.info("Total raw records: %d", len(all_records))
@@ -121,7 +123,20 @@ def main() -> None:
         insights = generate_insights(insight_seed or top_models[:10], changelog, api_key)
     else:
         log.warning("Step 6/6: DEEPSEEK_API_KEY not set — skipping AI insights")
-        insights = ""
+        insights = FALLBACK
+
+    health_report = build_health_report(
+        aa_count=len(aa_records),
+        arena_count=len(arena_records),
+        openrouter_count=len(or_records),
+        ranked=ranked,
+        bands=bands,
+        insights=insights,
+        hero=top_models[0] if top_models else None,
+    )
+    log_report(health_report)
+    apply_to_changelog(health_report, changelog)
+    enforce(health_report)
 
     # 8. Write archives + app shell
     log.info("Writing JSON archives and HTML app shell")
