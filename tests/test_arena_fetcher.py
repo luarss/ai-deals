@@ -258,7 +258,7 @@ def test_code_record_fields_and_harness_suffix_stripped(fake_server):
     assert code_records[0].arena_ci is None
     assert code_records[0].arena_votes == 2597
     assert code_records[1].name == "gpt-5.6-sol-xhigh"
-    assert code_records[1].model_id == "gpt-5.6-sol-xhigh"
+    assert code_records[1].model_id == "gpt-5-6-sol-xhigh"
 
 
 def test_parse_rows_skips_non_overall_and_incomplete_rows():

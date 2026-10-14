@@ -19,7 +19,7 @@ matches one of the group's names or slugs. Keys are tried strict first, then
 loose (date stamps, "preview"/"exp", trailing ".0" dropped); an ambiguous key
 is skipped.
 
-Field coalescion priority: leaderboard > coding > livecodebench > arena > openrouter
+Field coalescion priority: leaderboard > coding > livecodebench > openrouter > arena
 """
 
 from __future__ import annotations
@@ -37,9 +37,9 @@ PAGE_PRIORITY: dict[str, int] = {
     "leaderboard": 0,
     "coding": 1,
     "livecodebench": 2,
-    "arena-text": 3,
-    "arena-code": 4,
-    "openrouter": 5,
+    "openrouter": 3,
+    "arena-text": 4,
+    "arena-code": 5,
 }
 
 OPENROUTER_PAGE = "openrouter"
@@ -363,7 +363,7 @@ def merge_records(records: list[RawModelRecord]) -> list[MergedModel]:
     slug_registry: dict[str, str] = {}
     groups: dict[str, list[RawModelRecord]] = {}
 
-    for rec in records:
+    for rec in sorted(records, key=_priority):
         slug = _resolve_slug(rec, slug_registry, groups)
         groups.setdefault(slug, []).append(rec)
 

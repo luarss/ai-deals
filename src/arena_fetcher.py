@@ -104,6 +104,11 @@ def _optional_int(value) -> Optional[int]:
         return None
 
 
+def _slugify(name: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "-", name.lower().strip())
+    return slug.strip("-")
+
+
 def _row_to_record(row: dict, leaderboard: str) -> Optional[RawModelRecord]:
     model_name = row.get("model_name")
     rating = row.get("rating")
@@ -112,7 +117,7 @@ def _row_to_record(row: dict, leaderboard: str) -> Optional[RawModelRecord]:
 
     name = _strip_harness(model_name)
     fields: dict = {
-        "model_id": name,
+        "model_id": _slugify(name),
         "name": name,
         "source_pages": [f"arena-{leaderboard}"],
         "arena_votes": _optional_int(row.get("vote_count")),
