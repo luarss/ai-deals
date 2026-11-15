@@ -11,6 +11,7 @@ from pathlib import Path
 from src.arena_fetcher import fetch_all_arena
 from src.bands import compute_bands, compute_cheapest_above
 from src.differ import compute_changelog, load_previous_archive
+from src.freebie_fetcher import update_freebies
 from src.health import apply_to_changelog, build_health_report, enforce, log_report
 from src.insights import FALLBACK, generate_insights
 from src.merger import merge_records
@@ -150,6 +151,8 @@ def main() -> None:
         cheapest_above=cheapest_above,
         changelog=changelog,
     )
+
+    update_freebies(generated_at)
 
     html = render_app_shell()
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)

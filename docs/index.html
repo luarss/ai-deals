@@ -73,7 +73,7 @@
         </h1>
         <p class="text-sm text-gray-400 mt-0.5">Intelligence per dollar · updated daily</p>
       </div>
-      <div class="flex flex-wrap items-center gap-3 text-xs">
+      <div id="models-controls" class="flex flex-wrap items-center gap-3 text-xs">
         <div id="view-toggle" class="flex items-center gap-0.5 bg-gray-800 rounded-full p-0.5 mr-1">
           <button id="btn-aa" class="view-btn text-xs px-3 py-1 rounded-full font-medium transition-colors bg-indigo-600 text-white"
                   data-view="aa" onclick="switchView('aa')">Artificial Analysis</button>
@@ -90,7 +90,17 @@
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-4 py-10 space-y-12">
+  <!-- ===== PAGE TABS ===== -->
+  <nav class="border-b border-gray-800 px-4">
+    <div class="max-w-7xl mx-auto flex gap-1 text-sm" role="tablist">
+      <button id="tab-models" class="page-tab px-4 py-2.5 border-b-2 border-indigo-500 text-white font-medium transition-colors"
+              role="tab" aria-selected="true" data-tab="models">Models</button>
+      <button id="tab-freebies" class="page-tab px-4 py-2.5 border-b-2 border-transparent text-gray-400 hover:text-gray-200 font-medium transition-colors"
+              role="tab" aria-selected="false" data-tab="freebies">Free AI Credits</button>
+    </div>
+  </nav>
+
+  <main id="models-view" class="max-w-7xl mx-auto px-4 py-10 space-y-12">
 
     <!-- ===== WHAT CHANGED TODAY (spec 03 — the headline) ===== -->
     <section id="changelog-section" class="hidden">
@@ -225,12 +235,41 @@
 
   </main>
 
+  <!-- ===== FREE AI CREDITS (freebie-radar) ===== -->
+  <main id="freebies-view" class="hidden max-w-7xl mx-auto px-4 py-10 space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+      <div>
+        <h2 class="text-xl font-semibold">Free AI &amp; cloud credits</h2>
+        <p class="text-sm text-gray-400 mt-1">Free tokens, API keys, trials and cloud credits collected by
+          <a href="https://github.com/ZiChuanLan/freebie-radar" class="text-indigo-400 hover:underline" target="_blank" rel="noopener noreferrer">freebie-radar</a>.
+          Mostly Chinese-language community posts; links go to the original source.</p>
+      </div>
+      <span id="freebies-updated" class="text-xs text-gray-500 whitespace-nowrap"></span>
+    </div>
+    <div class="bg-amber-900/30 border border-amber-700/50 text-amber-100 text-sm rounded-lg px-4 py-3 space-y-1.5">
+      <p class="font-semibold text-amber-200">Use at your own risk</p>
+      <ul class="list-disc pl-5 space-y-1 text-amber-100/90">
+        <li>These are unverified third-party posts. AI Deal Tracker does not vet, endorse or control any offer, key or endpoint listed here.</li>
+        <li>Community API proxies can log, sell or alter everything you send through them. Never send work code, customer data, credentials or anything private.</li>
+        <li>Shared keys may be leaked rather than donated. Using a key without the owner's permission may break the provider's terms or the law.</li>
+        <li>Don't run downloaded tools or scripts, or give coding agents shell access, outside a disposable environment with no personal credentials.</li>
+        <li>Prefer official free tiers and trials from the providers themselves.</li>
+      </ul>
+    </div>
+    <div id="freebies-filters" class="flex flex-wrap gap-2 text-xs"></div>
+    <div id="freebies-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <p class="text-sm text-gray-500">Loading…</p>
+    </div>
+    <p class="text-xs text-gray-600">Items are filtered to AI, cloud, dev and open-source categories that freebie-radar's AI review marked as genuinely free or conditionally free. Shared API keys are redacted here; verify offers at the source before use.</p>
+  </main>
+
   <!-- ===== FOOTER ===== -->
   <footer class="border-t border-gray-800 mt-10 px-4 py-6 text-center text-xs text-gray-600">
     <p>
       Data: <a href="https://artificialanalysis.ai" class="hover:text-gray-400 transition-colors">artificialanalysis.ai</a>
       · <a href="https://arena.ai" class="hover:text-gray-400 transition-colors">arena.ai</a>
       · <a href="https://openrouter.ai" class="hover:text-gray-400 transition-colors">openrouter.ai</a>
+      · <a href="https://github.com/ZiChuanLan/freebie-radar" class="hover:text-gray-400 transition-colors">freebie-radar</a>
       · Analysis: <a href="https://deepseek.com" class="hover:text-gray-400 transition-colors">DeepSeek AI</a>
       · <a href="https://github.com/luarss/ai-deals" class="hover:text-gray-400 transition-colors">View source</a>
     </p>
@@ -1504,6 +1543,133 @@
       applyTierFilter();
       applyIntelFilter();
     }
+
+    // ── Free AI Credits tab (freebie-radar) ─────────────────────────────
+    // Third-party data: built with createElement/textContent only, never innerHTML.
+    var freebies = null;
+    var freebiesCategory = 'all';
+    var FREEBIE_OBTAIN_LABELS = { free: 'Free', conditional: 'Conditional' };
+
+    function makeElement(tag, className, text) {
+      var element = document.createElement(tag);
+      if (className) element.className = className;
+      if (text) element.textContent = text;
+      return element;
+    }
+
+    function isSafeUrl(url) {
+      return typeof url === 'string' && /^https?:\/\//.test(url);
+    }
+
+    function formatFreebieDate(iso) {
+      var date = iso ? new Date(iso) : null;
+      return date && !isNaN(date) ? date.toISOString().slice(0, 10) : '';
+    }
+
+    function buildFreebieCard(item) {
+      var card = makeElement('article', 'bg-gray-900 border border-gray-800 rounded-xl p-5 flex flex-col gap-2 hover:border-indigo-700/60 transition-colors');
+      var title = makeElement('a', 'text-gray-100 font-medium leading-snug hover:text-indigo-300', item.title);
+      title.href = item.url;
+      title.target = '_blank';
+      title.rel = 'noopener noreferrer nofollow';
+      card.appendChild(title);
+      if (item.summary) card.appendChild(makeElement('p', 'text-sm text-gray-400 leading-relaxed break-words', item.summary));
+
+      var meta = makeElement('div', 'flex flex-wrap items-center gap-2 text-xs mt-auto pt-1');
+      if (item.obtain) {
+        var obtainClass = item.obtain === 'free' ? 'bg-green-900/50 text-green-300' : 'bg-amber-900/50 text-amber-300';
+        meta.appendChild(makeElement('span', 'px-2 py-0.5 rounded-full ' + obtainClass, FREEBIE_OBTAIN_LABELS[item.obtain] || item.obtain));
+      }
+      if (item.category) meta.appendChild(makeElement('span', 'px-2 py-0.5 rounded-full bg-gray-800 text-gray-300', item.category));
+      if (item.source) meta.appendChild(makeElement('span', 'text-gray-500', item.source));
+      var published = formatFreebieDate(item.published_at);
+      if (published) meta.appendChild(makeElement('span', 'text-gray-500', published));
+      var expires = formatFreebieDate(item.expires_at);
+      if (expires) meta.appendChild(makeElement('span', 'text-rose-400', 'expires ' + expires));
+      card.appendChild(meta);
+      return card;
+    }
+
+    function renderFreebieFilters(items) {
+      var host = document.getElementById('freebies-filters');
+      var counts = { all: items.length };
+      items.forEach(function(item) {
+        if (item.category) counts[item.category] = (counts[item.category] || 0) + 1;
+      });
+      host.replaceChildren();
+      Object.keys(counts).forEach(function(category) {
+        var active = category === freebiesCategory;
+        var button = makeElement('button',
+          'px-3 py-1 rounded-full transition-colors ' + (active ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'),
+          category + ' (' + counts[category] + ')');
+        button.addEventListener('click', function() {
+          freebiesCategory = category;
+          renderFreebies();
+        });
+        host.appendChild(button);
+      });
+    }
+
+    function renderFreebies() {
+      var list = document.getElementById('freebies-list');
+      var items = (freebies.items || []).filter(function(item) {
+        return item && item.title && isSafeUrl(item.url);
+      });
+      document.getElementById('freebies-updated').textContent = freebies.generated_at ? 'Updated ' + freebies.generated_at : '';
+      renderFreebieFilters(items);
+      var visible = items.filter(function(item) {
+        return freebiesCategory === 'all' || item.category === freebiesCategory;
+      });
+      list.replaceChildren();
+      if (!visible.length) {
+        list.appendChild(makeElement('p', 'text-sm text-gray-500', 'No free credits listed right now.'));
+        return;
+      }
+      visible.forEach(function(item) { list.appendChild(buildFreebieCard(item)); });
+    }
+
+    function loadFreebies() {
+      if (freebies) return;
+      fetch('data/freebies.json')
+        .then(function(r) {
+          if (!r.ok) throw new Error('Not found');
+          return r.json();
+        })
+        .then(function(data) {
+          freebies = data;
+          renderFreebies();
+        })
+        .catch(function(err) {
+          console.error('Failed to load freebies', err);
+          var list = document.getElementById('freebies-list');
+          list.replaceChildren(makeElement('p', 'text-sm text-gray-500', 'Free credits data is unavailable right now.'));
+        });
+    }
+
+    function switchPageTab(tab) {
+      var showFreebies = tab === 'freebies';
+      document.getElementById('models-view').classList.toggle('hidden', showFreebies);
+      document.getElementById('freebies-view').classList.toggle('hidden', !showFreebies);
+      document.getElementById('models-controls').classList.toggle('hidden', showFreebies);
+      document.querySelectorAll('.page-tab').forEach(function(button) {
+        var active = button.dataset.tab === tab;
+        button.setAttribute('aria-selected', active ? 'true' : 'false');
+        button.classList.toggle('border-indigo-500', active);
+        button.classList.toggle('text-white', active);
+        button.classList.toggle('border-transparent', !active);
+        button.classList.toggle('text-gray-400', !active);
+      });
+      if (showFreebies) loadFreebies();
+    }
+
+    document.querySelectorAll('.page-tab').forEach(function(button) {
+      button.addEventListener('click', function() {
+        var tab = button.dataset.tab;
+        history.replaceState(null, '', tab === 'freebies' ? '#freebies' : location.pathname + location.search);
+        switchPageTab(tab);
+      });
+    });
+    if (location.hash === '#freebies') switchPageTab('freebies');
   </script>
 
 </body>
