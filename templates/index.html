@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Model Deal Tracker — Best Value LLMs Today</title>
+  <title>AI Deal Tracker — Best Value LLMs Today</title>
   <meta name="description" content="Daily ranking of the best-value AI models by intelligence per dollar, Arena Elo, and performance. Powered by Artificial Analysis, Arena AI, and OpenRouter data." />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -24,7 +24,14 @@
     th.sort-asc .sort-btn::after  { content: ' ▲'; opacity: 1; }
     th.sort-desc .sort-btn::after { content: ' ▼'; opacity: 1; }
 
-    .tier-chip, .intel-preset { cursor: pointer; transition: all 0.15s ease; }
+    .tier-chip, .intel-preset { cursor: pointer; transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
+    .tier-chip, .intel-preset, #clear-filters { min-height: 44px; display: inline-flex; align-items: center; }
+    @media (min-width: 640px) {
+      .tier-chip, .intel-preset, #clear-filters { min-height: 0; }
+    }
+    #clear-filters[hidden] { display: none; }
+    .tier-chip .tier-count { color: #9ca3af; }
+    .tier-chip.active .tier-count { color: #e0e7ff; }
     .tier-chip.active, .intel-preset.active { background-color: #4f46e5; border-color: #6366f1; color: #fff; }
     .tier-chip:not(.active):hover, .intel-preset:not(.active):hover { border-color: #6366f1; color: #a5b4fc; }
     .tier-chip:focus-visible, .intel-preset:focus-visible, #clear-filters:focus-visible { outline: 2px solid #818cf8; outline-offset: 2px; }
@@ -54,6 +61,15 @@
     #model-table th:first-child { z-index: 20; background-color: #111827; }
     #model-table td:first-child { z-index: 5; background-color: #030712; }
     #model-table tbody tr:hover td:first-child { background-color: #0a0d22; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+    }
   </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen font-sans antialiased">
@@ -105,7 +121,7 @@
       <section id="changelog-section" class="hidden border-y border-gray-800 py-3 px-1">
         <div class="flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
           <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
-            <h2 class="font-semibold text-gray-100">What changed</h2>
+            <h2 class="text-base font-semibold text-gray-100">What changed</h2>
             <span id="changelog-subtitle" class="text-gray-400"></span>
             <span id="changelog-strip" class="flex flex-wrap gap-x-3 gap-y-1 text-gray-300"></span>
           </div>
@@ -119,15 +135,15 @@
     </div>
 
     <section id="frontier-section" class="hidden">
-      <h2 class="text-base font-semibold text-gray-100 mb-1">
+      <h2 class="text-xl font-semibold text-gray-100 mb-1">
         <span id="frontier-title">Price vs Intelligence Frontier</span></h2>
-      <p class="text-xs text-gray-400 mb-3">Best deals are on the frontier — nothing cheaper is smarter. The ringed model is the knee (best value).</p>
+      <p id="frontier-caption" class="text-sm text-gray-400 mb-3">Best deals are on the frontier: nothing cheaper is smarter. The ringed model is the knee, today's pick.</p>
       <div id="frontier-chart" class="bg-gray-900/60 border border-gray-800 rounded-xl p-3 overflow-x-auto"></div>
     </section>
 
     <section id="bands-group" class="hidden">
-      <h2 class="text-base font-semibold text-gray-100 mb-1">By capability band</h2>
-      <p class="text-xs text-gray-400 mb-4">The best-value model inside each intelligence range, with runners-up.</p>
+      <h2 class="text-xl font-semibold text-gray-100 mb-1">By capability band</h2>
+      <p class="text-sm text-gray-400 mb-3">The highest deal score inside each intelligence range, with runners-up. Today's pick is chosen at the frontier knee instead, so it can differ.</p>
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <section id="band-flagship" class="band-section hidden"><div id="band-flagship-body" class="h-full"></div></section>
         <section id="band-workhorse" class="band-section hidden"><div id="band-workhorse-body" class="h-full"></div></section>
@@ -142,13 +158,13 @@
     <!-- ===== TRENDS: THE COST OF CAPABILITY (spec 04) ===== -->
     <section id="trends-section" class="hidden">
       <div class="flex items-center flex-wrap gap-3 mb-1">
-        <h2 id="trends-title" class="text-base font-semibold text-gray-100">The cost of capability over time</h2>
+        <h2 id="trends-title" class="text-xl font-semibold text-gray-100">The cost of capability over time</h2>
         <div id="trends-toggle" class="flex items-center gap-0.5 bg-gray-800 rounded-full p-0.5">
           <button class="trends-metric-btn text-xs px-3 py-0.5 rounded-full font-medium bg-indigo-600 text-white" data-metric="cheapest" onclick="setTrendsMetric('cheapest')">Cheapest</button>
           <button class="trends-metric-btn text-xs px-3 py-0.5 rounded-full font-medium text-gray-400" data-metric="median" onclick="setTrendsMetric('median')">Median</button>
         </div>
       </div>
-      <p id="trends-caption" class="text-xs text-gray-400 mb-3"></p>
+      <p id="trends-caption" class="text-sm text-gray-400 mb-3"></p>
       <div id="trends-chart" class="bg-gray-900/60 border border-gray-800 rounded-xl p-3 overflow-x-auto"></div>
     </section>
 
@@ -156,56 +172,56 @@
     <section id="insights-section" class="hidden bg-gray-900 border border-gray-800 rounded-xl p-7">
       <div class="flex items-center gap-2 mb-4">
         <span class="text-lg">🤖</span>
-        <h2 class="text-base font-semibold">AI Analysis</h2>
+        <h2 class="text-xl font-semibold text-gray-100">AI Analysis</h2>
         <span class="text-xs bg-indigo-900/60 text-indigo-300 px-2 py-0.5 rounded-full ml-1">DeepSeek</span>
       </div>
       <div id="insights-body" class="text-gray-300 leading-relaxed text-sm space-y-4"></div>
-      <p id="insights-footer" class="mt-5 text-xs text-gray-600"></p>
+      <p id="insights-footer" class="mt-5 text-xs text-gray-400"></p>
     </section>
 
     <!-- ===== FULL MODEL TABLE ===== -->
     <section>
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-        <h2 class="text-base font-semibold">All Models</h2>
+        <h2 class="text-xl font-semibold text-gray-100">All Models</h2>
         <div class="flex flex-wrap items-center gap-2" role="group" aria-labelledby="tier-filter-label">
-          <span id="tier-filter-label" class="text-xs text-gray-500 mr-1">Filter by size:</span>
+          <span id="tier-filter-label" class="text-xs text-gray-400 mr-1">Filter by size:</span>
           <button type="button" aria-pressed="true" class="tier-chip active text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-300"
                   data-tier="all" onclick="setTierFilter(this)">
-            All <span class="tier-count ml-1 opacity-60"></span>
+            All <span class="tier-count ml-1"></span>
           </button>
           <button type="button" aria-pressed="false" class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
                   data-tier="unknown" onclick="setTierFilter(this)">
-            Proprietary / undisclosed <span class="tier-count ml-1 opacity-60"></span>
+            Proprietary / undisclosed <span class="tier-count ml-1"></span>
           </button>
           <button type="button" aria-pressed="false" class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
                   data-tier="large" onclick="setTierFilter(this)">
-            Large 70B+ <span class="tier-count ml-1 opacity-60"></span>
+            Large 70B+ <span class="tier-count ml-1"></span>
           </button>
           <button type="button" aria-pressed="false" class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
                   data-tier="medium" onclick="setTierFilter(this)">
-            Medium 15–70B <span class="tier-count ml-1 opacity-60"></span>
+            Medium 15–70B <span class="tier-count ml-1"></span>
           </button>
           <button type="button" aria-pressed="false" class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
                   data-tier="small" onclick="setTierFilter(this)">
-            Small 3–15B <span class="tier-count ml-1 opacity-60"></span>
+            Small 3–15B <span class="tier-count ml-1"></span>
           </button>
           <button type="button" aria-pressed="false" class="tier-chip text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400"
                   data-tier="nano" onclick="setTierFilter(this)">
-            Nano &lt;3B <span class="tier-count ml-1 opacity-60"></span>
+            Nano &lt;3B <span class="tier-count ml-1"></span>
           </button>
         </div>
       </div>
-      <p id="tier-help" class="text-xs text-gray-500 -mt-2 mb-4">Sizes are parameter counts of open-weight models. Proprietary models don't publish theirs, so they sit in their own group.</p>
+      <p id="tier-help" class="text-xs text-gray-400 mb-4">Sizes are parameter counts of open-weight models. Proprietary models don't publish theirs, so they sit in their own group.</p>
       <div id="intel-filter-row" class="flex flex-wrap items-center gap-x-3 gap-y-2 mb-3">
-        <label id="intel-label" for="intel-slider" class="text-xs text-gray-500">Minimum intelligence</label>
+        <label id="intel-label" for="intel-slider" class="text-xs text-gray-400">Minimum intelligence</label>
         <input id="intel-slider" type="range" class="intel-slider w-32" min="0" max="100" step="0.5" aria-describedby="intel-val">
         <span id="intel-val" class="text-xs font-mono text-indigo-300 whitespace-nowrap">Any</span>
         <div id="intel-presets" class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Minimum presets"></div>
       </div>
       <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs mb-2">
-        <span aria-live="polite"><span id="visible-count" class="text-gray-300"></span> <span id="filter-summary" class="text-gray-500"></span></span>
+        <span aria-live="polite"><span id="visible-count" class="text-gray-300"></span> <span id="filter-summary" class="text-gray-400"></span></span>
         <button id="clear-filters" type="button" class="text-indigo-300 hover:text-indigo-200 underline underline-offset-2" hidden>Clear filters</button>
-        <span class="text-gray-500">· Click column headers to sort</span>
+        <span class="text-gray-400"><span class="hidden sm:inline" aria-hidden="true">· </span>Click column headers to sort</span>
       </div>
       <p id="table-scroll-hint" class="text-xs text-gray-400 mb-2" hidden>← scroll for more columns →</p>
 
@@ -218,8 +234,8 @@
     </section>
 
     <!-- ===== METHODOLOGY NOTE ===== -->
-    <section class="bg-gray-900/50 border border-gray-800/50 rounded-xl p-6 text-xs text-gray-500 space-y-2">
-      <h3 class="text-gray-400 font-medium mb-2">Methodology</h3>
+    <section class="bg-gray-900/50 border border-gray-800/50 rounded-xl p-6 text-sm text-gray-400 space-y-2">
+      <h2 class="text-xl font-semibold text-gray-100 mb-3">Methodology</h2>
       <p><strong class="text-gray-300">Best Deal</strong> = the knee of the price-vs-intelligence Pareto frontier (nothing cheaper is smarter). Ranked by intelligence gained per 10x of spend, so a cheap-but-weak model can no longer win on the ratio's tail. The Arena view uses the same frontier on Arena quality (arena_coding_elo).</p>
       <p><strong class="text-gray-300">Value Score</strong> = Intelligence Index / Blended Price. Higher = more intelligence per dollar (shown in the table; no longer selects the Best Deal).</p>
       <p><strong class="text-gray-300">Deal Score</strong> = weighted composite (50% value, 30% coding, 20% speed), each leg log-normalised against fixed reference ranges so scores are comparable across days; value uses a $0.05/1M price floor; models below 95% uptime are excluded from top deals. Used for the table sort and frontier tiebreaks.</p>
@@ -234,7 +250,7 @@
   <main id="freebies-view" class="hidden max-w-7xl mx-auto px-4 py-10 space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
       <div>
-        <h2 class="text-xl font-semibold">Free AI &amp; cloud credits</h2>
+        <h2 class="text-xl font-semibold text-gray-100">Free AI &amp; cloud credits</h2>
         <p class="text-sm text-gray-400 mt-1">Free tokens, API keys, trials and cloud credits collected by
           <a href="https://github.com/ZiChuanLan/freebie-radar" class="text-indigo-400 hover:underline" target="_blank" rel="noopener noreferrer">freebie-radar</a>.
           Mostly Chinese-language community posts; links go to the original source.</p>
@@ -259,14 +275,14 @@
   </main>
 
   <!-- ===== FOOTER ===== -->
-  <footer class="border-t border-gray-800 mt-10 px-4 py-6 text-center text-xs text-gray-600">
+  <footer class="border-t border-gray-800 mt-10 px-4 py-6 text-center text-xs text-gray-400">
     <p>
-      Data: <a href="https://artificialanalysis.ai" class="hover:text-gray-400 transition-colors">artificialanalysis.ai</a>
-      · <a href="https://arena.ai" class="hover:text-gray-400 transition-colors">arena.ai</a>
-      · <a href="https://openrouter.ai" class="hover:text-gray-400 transition-colors">openrouter.ai</a>
-      · <a href="https://github.com/ZiChuanLan/freebie-radar" class="hover:text-gray-400 transition-colors">freebie-radar</a>
-      · Analysis: <a href="https://deepseek.com" class="hover:text-gray-400 transition-colors">DeepSeek AI</a>
-      · <a href="https://github.com/luarss/ai-deals" class="hover:text-gray-400 transition-colors">View source</a>
+      Data: <a href="https://artificialanalysis.ai" class="hover:text-gray-200 transition-colors">artificialanalysis.ai</a>
+      · <a href="https://arena.ai" class="hover:text-gray-200 transition-colors">arena.ai</a>
+      · <a href="https://openrouter.ai" class="hover:text-gray-200 transition-colors">openrouter.ai</a>
+      · <a href="https://github.com/ZiChuanLan/freebie-radar" class="hover:text-gray-200 transition-colors">freebie-radar</a>
+      · Analysis: <a href="https://deepseek.com" class="hover:text-gray-200 transition-colors">DeepSeek AI</a>
+      · <a href="https://github.com/luarss/ai-deals" class="hover:text-gray-200 transition-colors">View source</a>
     </p>
     <p class="mt-1">Not affiliated with any data source. Rankings are computed independently.</p>
   </footer>
@@ -304,7 +320,7 @@
     }
 
     function uptimeClass(v) {
-      if (v == null) return 'text-gray-600';
+      if (v == null) return 'text-gray-400';
       if (v >= 99) return 'text-green-400';
       if (v >= 95) return 'text-yellow-400';
       return 'text-red-400';
@@ -465,7 +481,9 @@
     function scrollToFrontier(event) {
       event.preventDefault();
       var target = document.getElementById('frontier-section');
-      if (target && !target.classList.contains('hidden')) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (!target || target.classList.contains('hidden')) return;
+      var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      target.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
     }
 
     function heroQuality(model, isArena, maxIntel) {
@@ -517,7 +535,8 @@
       var html = '<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-5">';
       html += '<div class="max-w-2xl">';
       html += '<h2 id="hero-name" class="text-3xl sm:text-4xl font-bold tracking-tight text-white text-balance">' + escapeHtml(model.name) + '</h2>';
-      html += '<p class="mt-1 text-sm text-indigo-100">Best value today' + (model.creator ? ' · ' + escapeHtml(model.creator) : '') + '</p>';
+      var pickLabel = frontierRank(model, currentView) === 1 ? 'Best value today · frontier knee' : 'Best value today';
+      html += '<p class="mt-1 text-sm text-indigo-100">' + pickLabel + (model.creator ? ' · ' + escapeHtml(model.creator) : '') + '</p>';
       html += '<p class="mt-4 text-base leading-relaxed text-gray-100">' + heroReason(model, isArena, maxIntel) + '</p>';
       html += '</div>';
 
@@ -555,9 +574,10 @@
       row.classList.remove('hidden');
     }
 
-    function renderRunnersUp(models, maxIntel, maxElo) {
+    function renderRunnersUp(models, heroModel) {
       var items = (models || []).map(function(model) { return alternativeItem('', model, false); });
-      renderAlternatives('Runners-up', items);
+      var onFrontier = heroModel && frontierRank(heroModel, currentView) === 1;
+      renderAlternatives(onFrontier ? 'Next on the frontier' : 'Runners-up', items);
     }
 
     function renderInsights(text, generatedAt) {
@@ -627,6 +647,8 @@
       section.classList.remove('hidden');
       var isArena = view === 'arena';
       title.textContent = isArena ? 'Price vs Arena Quality Frontier' : 'Price vs Intelligence Frontier';
+      document.getElementById('frontier-caption').textContent = 'Best deals are on the frontier: nothing cheaper ' +
+        (isArena ? 'ranks higher on Arena' : 'is smarter') + '. The ringed model is the knee, today\'s pick.';
 
       // Eligible = every model in this view that has price + quality (faint dots).
       var pts = [];
@@ -763,7 +785,7 @@
         });
       });
       if (!allVals.length) {
-        host.innerHTML = '<p class="text-xs text-gray-500 p-4">No priced-model history yet.</p>';
+        host.innerHTML = '<p class="text-xs text-gray-400 p-4">No priced-model history yet.</p>';
         caption.textContent = '';
         return;
       }
@@ -886,7 +908,7 @@
           ['arena_code', 'number', 'Arena Code', 'text-right', 'xl:w-[10%]'],
           ['speed', 'number', 'TPS', 'text-right', 'xl:w-[9%]'],
           ['ctx', 'number', 'Context', 'text-right', 'xl:w-[7%]'],
-          ['arena_deal', 'number', 'Arena Deal ↓', 'text-right', 'xl:w-[9%]'],
+          ['arena_deal', 'number', 'Arena Deal', 'text-right', 'xl:w-[9%]'],
           ['uptime', 'number', 'Uptime', 'text-right', 'xl:w-[9%]']
         ];
       } else {
@@ -898,7 +920,7 @@
           ['coding', 'number', 'Coding', 'text-right', 'xl:w-[8%]'],
           ['speed', 'number', 'TPS', 'text-right', 'xl:w-[9%]'],
           ['ctx', 'number', 'Context', 'text-right', 'xl:w-[7%]'],
-          ['deal', 'number', 'Deal Score ↓', 'text-right', 'xl:w-[9%]'],
+          ['deal', 'number', 'Deal Score', 'text-right', 'xl:w-[9%]'],
           ['uptime', 'number', 'Uptime', 'text-right', 'xl:w-[9%]']
         ];
       }
@@ -922,6 +944,11 @@
       observer.observe(scroller);
       observer.observe(document.getElementById('model-table'));
     })();
+
+    function tierOf(model) {
+      if (!model.size_tier || model.size_tier === 'frontier') return 'unknown';
+      return model.size_tier;
+    }
 
     function renderTable(models) {
       var isArena = currentView === 'arena';
@@ -949,14 +976,14 @@
         html += ' data-ctx="' + (m.context_window_k != null ? m.context_window_k : '') + '"';
         html += ' data-deal="' + (m.composite_deal_score != null ? m.composite_deal_score : '') + '"';
         html += ' data-arena_deal="' + (m.arena_composite_score != null ? m.arena_composite_score : '') + '"';
-        html += ' data-tier="' + (m.size_tier || 'unknown') + '"';
+        html += ' data-tier="' + tierOf(m) + '"';
         html += ' data-uptime="' + (m.uptime_30m != null ? m.uptime_30m : '') + '">';
 
         // Column: Model
         html += '<td class="px-4 py-3 font-medium text-gray-100">';
         html += '<div class="flex items-center gap-1 flex-wrap w-32 sm:w-44 xl:w-auto">';
         html += '<span class="break-words min-w-0 xl:truncate">' + escapeHtml(m.name) + '</span>';
-        if (m.creator) html += '<span class="text-gray-500 text-xs shrink-0">· ' + escapeHtml(m.creator) + '</span>';
+        if (m.creator) html += '<span class="text-gray-400 text-xs shrink-0">· ' + escapeHtml(m.creator) + '</span>';
         // Modality chips — only for non-text modalities
         if (m.input_modalities) {
           m.input_modalities.forEach(function(mod) {
@@ -979,7 +1006,7 @@
           // Arena Elo
           var elo = m.arena_elo;
           var eloText = elo != null ? fmtScore(elo, 0) : '—';
-          if (m.arena_ci != null && elo != null) eloText += '<span class="text-gray-500 text-xs"> ±' + m.arena_ci + '</span>';
+          if (m.arena_ci != null && elo != null) eloText += '<span class="text-gray-400 text-xs"> ±' + m.arena_ci + '</span>';
           html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + eloText + '</td>';
           // Price
           html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtPrice(price) + '</td>';
@@ -1015,6 +1042,10 @@
         }
         html += '</tr>';
       });
+      if (!models.length) {
+        html = '<tr><td colspan="9" class="px-4 py-10 text-center text-gray-400">' +
+          (isArena ? 'No Arena data in this snapshot.' : 'No scored models in this snapshot.') + '</td></tr>';
+      }
       document.getElementById('table-body').innerHTML = html;
     }
 
@@ -1067,7 +1098,7 @@
     }
 
     function bandRunnerCard(model, isCurrentPick) {
-      var pickTag = isCurrentPick ? '<span class="shrink-0 text-xs text-indigo-200 bg-indigo-900/60 px-1.5 py-0.5 rounded-full">Today\'s pick</span>' : '';
+      var pickTag = isCurrentPick ? '<span class="shrink-0 text-xs text-indigo-200 bg-indigo-900/60 px-2 py-0.5 rounded-full">Today\'s pick</span>' : '';
       return '<li class="flex items-baseline justify-between gap-3 py-1.5">' +
         '<span class="flex items-baseline gap-1.5 min-w-0"><span class="text-gray-200 truncate">' + escapeHtml(model.name) + '</span>' + pickTag + '</span>' +
         '<span class="font-mono text-xs text-gray-400 whitespace-nowrap">' + bandModelStats(model) + '</span></li>';
@@ -1332,8 +1363,16 @@
         section.classList.remove('hidden');
       });
 
-      if (alternatives.length) renderAlternatives('Best value by intelligence', alternatives);
+      if (alternatives.length) renderAlternatives('Top deal score per band', alternatives);
       return true;
+    }
+
+    function topByDealScore(models, isArena, limit) {
+      var scoreKey = isArena ? 'arena_composite_score' : 'composite_deal_score';
+      return models
+        .filter(function(m) { return m[scoreKey] != null; })
+        .sort(function(a, b) { return b[scoreKey] - a[scoreKey]; })
+        .slice(0, limit);
     }
 
     // ── Render entire page from JSON ────────────────────────────────────
@@ -1355,7 +1394,6 @@
 
       // Show intel slider for both views; switch data source in Arena mode
       document.getElementById('intel-filter-row').style.display = '';
-      document.getElementById('intel-label').textContent = isArena ? 'Minimum Arena Elo' : 'Minimum intelligence';
 
       var maxIntel = 60;
       var maxElo = 2000;
@@ -1375,28 +1413,15 @@
       renderTrends();
       initTableInteractions();
 
-      // Hero/runners-up: prefer the pipeline-computed knee (JSON hero fields).
-      // Old archives lack the arena_hero field (and pre-frontier heroes are the
-      // recorded ones) — fall back to the legacy top-3-visible-rows derivation.
       var heroField = isArena ? data.arena_hero : data.hero;
       var runnersField = isArena ? data.arena_runners_up : data.runners_up;
       if (heroField) {
         renderHero(heroField, maxIntel, maxElo);
-        renderRunnersUp((runnersField || []).slice(0, 3), maxIntel, maxElo);
+        renderRunnersUp((runnersField || []).slice(0, 3), heroField);
       } else {
-        // Legacy fallback: derive from the leaderboard's filtered/sorted state
-        // so the hero matches the top 3 visible rows.
-        (function() {
-          var tbody = document.querySelector('#model-table tbody');
-          var visRows = Array.from(tbody.querySelectorAll('tr')).filter(function(r) {
-            return !r.classList.contains('tier-hidden') && !r.classList.contains('intel-hidden');
-          });
-          var modelMap = {};
-          allModels.forEach(function(m) { modelMap[m.name] = m; });
-          var top = visRows.slice(0, 3).map(function(r) { return modelMap[r.dataset.name]; }).filter(Boolean);
-          renderHero(top[0] || null, maxIntel, maxElo);
-          renderRunnersUp(top.slice(1), maxIntel, maxElo);
-        })();
+        var top = topByDealScore(models, isArena, 4);
+        renderHero(top[0] || null, maxIntel, maxElo);
+        renderRunnersUp(top.slice(1), top[0]);
       }
 
       renderBands(data);
@@ -1460,7 +1485,7 @@
       renderPage(data);
     }).catch(function(err) {
       console.error('Failed to load initial data', err);
-      document.getElementById('table-body').innerHTML = '<tr><td colspan="8" class="px-4 py-10 text-center text-gray-500">Failed to load data. Please try again later.</td></tr>';
+      document.getElementById('table-body').innerHTML = '<tr><td colspan="9" class="px-4 py-10 text-center text-gray-400">Failed to load data. Please try again later.</td></tr>';
     });
 
     // ── SORT + TIER FILTER (extracted from IIFE) ─────────────────────────
@@ -1470,7 +1495,7 @@
       var currentCol = 'deal';
       var ascending  = false;
 
-      function allRows() { return Array.from(tbody.querySelectorAll('tr')); }
+      function allRows() { return Array.from(tbody.querySelectorAll('tr[data-name]')); }
 
       function visibleRows() {
         return allRows().filter(function(r) {
@@ -1478,7 +1503,17 @@
         });
       }
 
-      function scoreAttr() { return currentView === 'arena' ? 'arena_elo' : 'intel'; }
+      var usesCodeElo = currentView === 'arena' && !allRows().some(function(r) { return r.dataset.arena_elo !== ''; });
+
+      function scoreAttr() {
+        if (currentView !== 'arena') return 'intel';
+        return usesCodeElo ? 'arena_code' : 'arena_elo';
+      }
+
+      function scoreName() {
+        if (currentView !== 'arena') return 'intelligence';
+        return usesCodeElo ? 'Arena code Elo' : 'Arena Elo';
+      }
 
       function rowScores() {
         var attr = scoreAttr();
@@ -1512,7 +1547,7 @@
         var minScore = filterState.minScore[currentView];
         var reasons = [];
         if (filterState.tier !== 'all') reasons.push('size');
-        if (minScore != null) reasons.push(isArena ? 'minimum Arena Elo' : 'minimum intelligence');
+        if (minScore != null) reasons.push('minimum ' + scoreName());
         var summary = '';
         if (reasons.length) {
           summary = '· filtered by: ' + reasons.join(', ');
@@ -1521,11 +1556,11 @@
             return !r.classList.contains('tier-hidden') && isNaN(parseFloat(r.dataset[attr]));
           }).length;
           if (minScore != null && unscored > 0) {
-            summary += ' (hides ' + unscored + (unscored === 1 ? ' model' : ' models') + ' with no ' + (isArena ? 'Arena Elo' : 'intelligence score') + ')';
+            summary += ' (hides ' + unscored + (unscored === 1 ? ' model' : ' models') + ' with no ' + (isArena ? scoreName() : 'intelligence score') + ')';
           }
         }
-        var countText = 'Showing all ' + total + ' models';
-        if (reasons.length) {
+        var countText = total === 0 ? 'No models in this view' : 'Showing all ' + total + ' models';
+        if (reasons.length && total > 0) {
           countText = shown === 0
             ? 'No models match these filters (0 of ' + total + ')'
             : 'Showing ' + shown + ' of ' + total + ' models';
@@ -1562,7 +1597,7 @@
       function updateRankBadges(rows) {
         tbody.querySelectorAll('span.rank-badge').forEach(function(b) { b.remove(); });
         rows.slice(0, 3).forEach(function(row, idx) {
-          var nameCell = row.querySelector('td:first-child');
+          var nameCell = row.querySelector('td:first-child > div') || row.querySelector('td:first-child');
           if (!nameCell) return;
           var badge = document.createElement('span');
           badge.className = 'rank-badge text-indigo-400 mr-1.5 text-xs';
@@ -1628,7 +1663,7 @@
         [{ label: 'Any', min: null }].concat(options).forEach(function(option) {
           var preset = document.createElement('button');
           preset.type = 'button';
-          preset.className = 'intel-preset text-xs px-2.5 py-0.5 rounded-full border border-gray-700 text-gray-400';
+          preset.className = 'intel-preset text-xs px-3 py-1 rounded-full border border-gray-700 text-gray-400';
           preset.dataset.min = option.min == null ? '' : option.min;
           preset.textContent = option.label;
           host.appendChild(preset);
@@ -1637,6 +1672,7 @@
 
       function configureIntelSlider() {
         var slider = document.getElementById('intel-slider');
+        document.getElementById('intel-label').textContent = 'Minimum ' + scoreName();
         var scores = rowScores();
         if (!scores.length) {
           filterState.minScore[currentView] = null;
@@ -1670,6 +1706,7 @@
       configureIntelSlider();
       syncTierChips();
       refreshTableFilters();
+      writeHashState();
     }
 
     // ── Free AI Credits tab (freebie-radar) ─────────────────────────────
@@ -1798,6 +1835,18 @@
       });
     });
     if (readHashState().tab === 'freebies') switchPageTab('freebies');
+
+    window.addEventListener('hashchange', function() {
+      var hashState = readHashState();
+      if (!/^#?$/.test(location.hash) && hashState.tab === 'models' && hashState.view === 'aa' && hashState.tier === 'all' && hashState.min == null) return;
+      currentView = hashState.view;
+      filterState.tier = hashState.tier;
+      filterState.minScore[currentView] = hashState.min;
+      syncViewButtons();
+      syncTierChips();
+      switchPageTab(hashState.tab);
+      if (currentData) renderPage(currentData);
+    });
   </script>
 
 </body>
