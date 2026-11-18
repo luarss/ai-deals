@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>AI Deal Tracker — Best Value LLMs Today</title>
   <meta name="description" content="Daily ranking of the best-value AI models by intelligence per dollar, Arena Elo, and performance. Powered by Artificial Analysis, Arena AI, and OpenRouter data." />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -25,9 +25,10 @@
     th.sort-desc .sort-btn::after { content: ' ▼'; opacity: 1; }
 
     .tier-chip, .intel-preset { cursor: pointer; transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
-    .tier-chip, .intel-preset, #clear-filters { min-height: 44px; display: inline-flex; align-items: center; }
+    .tier-chip, .intel-preset, #clear-filters, .view-btn, .trends-metric-btn, .freebie-filter, .page-tab { min-height: 44px; display: inline-flex; align-items: center; }
+    #date-selector { min-height: 44px; }
     @media (min-width: 640px) {
-      .tier-chip, .intel-preset, #clear-filters { min-height: 0; }
+      .tier-chip, .intel-preset, #clear-filters, .view-btn, .trends-metric-btn, .freebie-filter, .page-tab, #date-selector { min-height: 0; }
     }
     #clear-filters[hidden] { display: none; }
     .tier-chip .tier-count { color: #9ca3af; }
@@ -111,6 +112,11 @@
   </nav>
 
   <main id="models-view" class="max-w-7xl mx-auto px-4 py-10 space-y-12">
+
+    <div id="load-error" class="hidden bg-rose-950/40 border border-rose-800/60 text-rose-100 text-sm rounded-lg px-4 py-3 flex flex-wrap items-center gap-3" role="alert">
+      <p id="load-error-text" class="flex-1 min-w-0"></p>
+      <button id="load-error-retry" type="button" class="min-h-[44px] sm:min-h-0 px-3 py-1 rounded-full border border-rose-700 text-rose-100 hover:bg-rose-900/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-rose-300">Try again</button>
+    </div>
 
     <div class="space-y-3">
       <section id="hero-section" class="hidden" aria-labelledby="hero-name">
@@ -234,7 +240,7 @@
     </section>
 
     <!-- ===== METHODOLOGY NOTE ===== -->
-    <section class="bg-gray-900/50 border border-gray-800/50 rounded-xl p-6 text-sm text-gray-400 space-y-2">
+    <section class="bg-gray-900/50 border border-gray-800/50 rounded-xl p-6 text-sm text-gray-400 space-y-2 [&>p]:max-w-3xl">
       <h2 class="text-xl font-semibold text-gray-100 mb-3">Methodology</h2>
       <p><strong class="text-gray-300">Best Deal</strong> = the knee of the price-vs-intelligence Pareto frontier (nothing cheaper is smarter). Ranked by intelligence gained per 10x of spend, so a cheap-but-weak model can no longer win on the ratio's tail. The Arena view uses the same frontier on Arena quality (arena_coding_elo).</p>
       <p><strong class="text-gray-300">Value Score</strong> = Intelligence Index / Blended Price. Higher = more intelligence per dollar (shown in the table; no longer selects the Best Deal).</p>
@@ -251,11 +257,11 @@
     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
       <div>
         <h2 class="text-xl font-semibold text-gray-100">Free AI &amp; cloud credits</h2>
-        <p class="text-sm text-gray-400 mt-1">Free tokens, API keys, trials and cloud credits collected by
+        <p class="text-sm text-gray-400 mt-1 max-w-3xl">Free tokens, API keys, trials and cloud credits collected by
           <a href="https://github.com/ZiChuanLan/freebie-radar" class="text-indigo-400 hover:underline" target="_blank" rel="noopener noreferrer">freebie-radar</a>.
           Mostly Chinese-language community posts; links go to the original source.</p>
       </div>
-      <span id="freebies-updated" class="text-xs text-gray-500 whitespace-nowrap"></span>
+      <span id="freebies-updated" class="text-xs text-gray-400 whitespace-nowrap"></span>
     </div>
     <div class="bg-amber-900/30 border border-amber-700/50 text-amber-100 text-sm rounded-lg px-4 py-3 space-y-1.5">
       <p class="font-semibold text-amber-200">Use at your own risk</p>
@@ -269,9 +275,9 @@
     </div>
     <div id="freebies-filters" class="flex flex-wrap gap-2 text-xs"></div>
     <div id="freebies-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <p class="text-sm text-gray-500">Loading…</p>
+      <p class="text-sm text-gray-400">Loading…</p>
     </div>
-    <p class="text-xs text-gray-600">Items are filtered to AI, cloud, dev and open-source categories that freebie-radar's AI review marked as genuinely free or conditionally free. Shared API keys are redacted here; verify offers at the source before use.</p>
+    <p class="text-xs text-gray-400 max-w-3xl">Items are filtered to AI, cloud, dev and open-source categories that freebie-radar's AI review marked as genuinely free or conditionally free. Shared API keys are redacted here; verify offers at the source before use.</p>
   </main>
 
   <!-- ===== FOOTER ===== -->
@@ -634,6 +640,26 @@
     }
 
     // ── Inline-SVG price-vs-quality scatter + frontier line ───────────────
+    function chartTextScale(host, viewWidth) {
+      var width = host.clientWidth;
+      if (!width) return 1;
+      return Math.min(2.4, Math.max(1, viewWidth / width * 0.95));
+    }
+
+    var chartResizeTimer = null;
+    var lastChartWindowWidth = window.innerWidth;
+    function redrawCharts() {
+      if (!currentData) return;
+      renderFrontierChart(currentData, currentView);
+      if (trends) drawTrendsChart();
+    }
+    window.addEventListener('resize', function() {
+      if (window.innerWidth === lastChartWindowWidth) return;
+      lastChartWindowWidth = window.innerWidth;
+      clearTimeout(chartResizeTimer);
+      chartResizeTimer = setTimeout(redrawCharts, 150);
+    });
+
     function renderFrontierChart(data, view) {
       var section = document.getElementById('frontier-section');
       var host = document.getElementById('frontier-chart');
@@ -670,8 +696,12 @@
       if (isArena) ymin -= ypad;
       ymax += ypad;
 
-      var W = 760, H = 380, mL = 56, mR = 16, mT = 16, mB = 46;
+      var W = 760;
+      var textScale = chartTextScale(host, W);
+      var dotScale = Math.sqrt(textScale);
+      var H = textScale > 1.4 ? 480 : 380, mL = Math.round(56 * textScale), mR = 16, mT = 16, mB = Math.round(46 * textScale);
       var pw = W - mL - mR, ph = H - mT - mB;
+      var tickSize = (10 * textScale).toFixed(1), labelSize = (11 * textScale).toFixed(1);
       function sx(x) { return mL + (Math.log10(x) - lxmin) / (lxmax - lxmin) * pw; }
       function sy(y) { return mT + (1 - (y - ymin) / (ymax - ymin)) * ph; }
 
@@ -682,23 +712,24 @@
         var xv = Math.pow(10, k);
         var xp = sx(xv);
         svg += '<line x1="' + xp.toFixed(1) + '" y1="' + mT + '" x2="' + xp.toFixed(1) + '" y2="' + (mT + ph) + '" stroke="#1f2937" stroke-width="1"/>';
-        svg += '<text x="' + xp.toFixed(1) + '" y="' + (mT + ph + 16) + '" fill="#9ca3af" font-size="10" text-anchor="middle">' + fmtPrice(xv) + '</text>';
+        svg += '<text x="' + xp.toFixed(1) + '" y="' + (mT + ph + 16 * textScale).toFixed(1) + '" fill="#9ca3af" font-size="' + tickSize + '" text-anchor="middle">' + fmtPrice(xv) + '</text>';
       }
       // Y gridlines + ticks (5 steps).
       for (var t = 0; t <= 4; t++) {
         var yv = ymin + (ymax - ymin) * t / 4;
         var yp = sy(yv);
         svg += '<line x1="' + mL + '" y1="' + yp.toFixed(1) + '" x2="' + (mL + pw) + '" y2="' + yp.toFixed(1) + '" stroke="#1f2937" stroke-width="1"/>';
-        svg += '<text x="' + (mL - 6) + '" y="' + (yp + 3).toFixed(1) + '" fill="#9ca3af" font-size="10" text-anchor="end">' + yv.toFixed(0) + '</text>';
+        svg += '<text x="' + (mL - 6) + '" y="' + (yp + 3 * textScale).toFixed(1) + '" fill="#9ca3af" font-size="' + tickSize + '" text-anchor="end">' + yv.toFixed(0) + '</text>';
       }
       // Axis labels.
-      svg += '<text x="' + (mL + pw / 2) + '" y="' + (H - 4) + '" fill="#6b7280" font-size="11" text-anchor="middle">Price /1M tokens (log)</text>';
-      svg += '<text x="14" y="' + (mT + ph / 2) + '" fill="#6b7280" font-size="11" text-anchor="middle" transform="rotate(-90 14 ' + (mT + ph / 2) + ')">' + (isArena ? 'Arena quality' : 'Intelligence') + '</text>';
+      var yTitleX = (14 * textScale).toFixed(1);
+      svg += '<text x="' + (mL + pw / 2) + '" y="' + (H - 4) + '" fill="#9ca3af" font-size="' + labelSize + '" text-anchor="middle">Price /1M tokens (log)</text>';
+      svg += '<text x="' + yTitleX + '" y="' + (mT + ph / 2) + '" fill="#9ca3af" font-size="' + labelSize + '" text-anchor="middle" transform="rotate(-90 ' + yTitleX + ' ' + (mT + ph / 2) + ')">' + (isArena ? 'Arena quality' : 'Intelligence') + '</text>';
 
       // Faint dots for all eligible models.
       pts.forEach(function(p) {
         if (p.front) return;
-        svg += '<circle cx="' + sx(p.x).toFixed(1) + '" cy="' + sy(p.y).toFixed(1) + '" r="3" fill="#4b5563" fill-opacity="0.55"><title>' +
+        svg += '<circle cx="' + sx(p.x).toFixed(1) + '" cy="' + sy(p.y).toFixed(1) + '" r="' + (3 * dotScale).toFixed(1) + '" fill="#4b5563" fill-opacity="0.55"><title>' +
           escapeAttr(p.m.name) + '\n' + fmtPrice(p.x) + ' · ' + p.y.toFixed(0) + '</title></circle>';
       });
 
@@ -707,22 +738,22 @@
       if (fpts.length > 1) {
         var d = '';
         fpts.forEach(function(p, i) { d += (i === 0 ? 'M' : 'L') + sx(p.x).toFixed(1) + ' ' + sy(p.y).toFixed(1) + ' '; });
-        svg += '<path d="' + d.trim() + '" fill="none" stroke="#6366f1" stroke-width="2" stroke-opacity="0.7"/>';
+        svg += '<path d="' + d.trim() + '" fill="none" stroke="#6366f1" stroke-width="' + (2 * dotScale).toFixed(1) + '" stroke-opacity="0.7"/>';
       }
       // Frontier dots + hero ring/label.
       fpts.forEach(function(p) {
         var cx = sx(p.x), cy = sy(p.y);
         var isHero = p.rank === 1;
         if (isHero) {
-          svg += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="9" fill="none" stroke="#fbbf24" stroke-width="2"/>';
+          svg += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + (9 * dotScale).toFixed(1) + '" fill="none" stroke="#fbbf24" stroke-width="' + (2 * dotScale).toFixed(1) + '"/>';
         }
-        svg += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + (isHero ? 4.5 : 4) + '" fill="' + (isHero ? '#fbbf24' : '#818cf8') + '"><title>' +
+        svg += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + ((isHero ? 4.5 : 4) * dotScale).toFixed(1) + '" fill="' + (isHero ? '#fbbf24' : '#818cf8') + '"><title>' +
           escapeAttr(p.m.name) + (p.m.creator ? ' (' + escapeAttr(p.m.creator) + ')' : '') + '\n' +
           fmtPrice(p.x) + ' · ' + p.y.toFixed(0) + '\nknee score ' + (frontierScoreOf(p.m, view) != null ? frontierScoreOf(p.m, view).toFixed(3) : '—') + '</title></circle>';
         if (isHero) {
           var anchor = cx > mL + pw * 0.7 ? 'end' : 'start';
-          var dx = anchor === 'end' ? -12 : 12;
-          svg += '<text x="' + (cx + dx).toFixed(1) + '" y="' + (cy - 10).toFixed(1) + '" fill="#fcd34d" font-size="11" font-weight="600" text-anchor="' + anchor + '">' + escapeHtml(p.m.name) + '</text>';
+          var dx = (anchor === 'end' ? -12 : 12) * dotScale;
+          svg += '<text x="' + (cx + dx).toFixed(1) + '" y="' + (cy - 10 * dotScale).toFixed(1) + '" fill="#fcd34d" font-size="' + labelSize + '" font-weight="600" text-anchor="' + anchor + '">' + escapeHtml(p.m.name) + '</text>';
         }
       });
 
@@ -795,8 +826,12 @@
       var lymin = Math.log10(Math.min.apply(null, allVals)) - 0.1;
       var lymax = Math.log10(Math.max.apply(null, allVals)) + 0.1;
 
-      var W = 760, H = 340, mL = 52, mR = 96, mT = 14, mB = 40;
+      var W = 760;
+      var textScale = chartTextScale(host, W);
+      var lineScale = Math.sqrt(textScale);
+      var H = textScale > 1.4 ? 440 : 340, mL = Math.round(52 * textScale), mR = Math.round(40 + 56 * textScale), mT = 14, mB = Math.round(40 * textScale);
       var pw = W - mL - mR, ph = H - mT - mB;
+      var tickSize = (10 * textScale).toFixed(1), labelSize = (11 * textScale).toFixed(1);
       function sx(dn) { return mL + (dn - dmin) / (dmax - dmin) * pw; }
       function sy(v) { return mT + (1 - (Math.log10(v) - lymin) / (lymax - lymin)) * ph; }
 
@@ -806,7 +841,7 @@
       for (var k = Math.ceil(lymin); k <= Math.floor(lymax); k++) {
         var yv = Math.pow(10, k), yp = sy(yv);
         svg += '<line x1="' + mL + '" y1="' + yp.toFixed(1) + '" x2="' + (mL + pw) + '" y2="' + yp.toFixed(1) + '" stroke="#1f2937" stroke-width="1"/>';
-        svg += '<text x="' + (mL - 6) + '" y="' + (yp + 3).toFixed(1) + '" fill="#9ca3af" font-size="10" text-anchor="end">' + fmtPrice(yv) + '</text>';
+        svg += '<text x="' + (mL - 6) + '" y="' + (yp + 3 * textScale).toFixed(1) + '" fill="#9ca3af" font-size="' + tickSize + '" text-anchor="end">' + fmtPrice(yv) + '</text>';
       }
       // X ticks: first, last, and up to 4 evenly spaced dates.
       var nTicks = 5;
@@ -815,18 +850,19 @@
         var xp = sx(dn);
         var label = new Date(dn * 86400000).toISOString().slice(5, 10);   // MM-DD
         svg += '<line x1="' + xp.toFixed(1) + '" y1="' + mT + '" x2="' + xp.toFixed(1) + '" y2="' + (mT + ph) + '" stroke="#1f2937" stroke-width="1"/>';
-        svg += '<text x="' + xp.toFixed(1) + '" y="' + (mT + ph + 15) + '" fill="#9ca3af" font-size="10" text-anchor="middle">' + label + '</text>';
+        svg += '<text x="' + xp.toFixed(1) + '" y="' + (mT + ph + 15 * textScale).toFixed(1) + '" fill="#9ca3af" font-size="' + tickSize + '" text-anchor="middle">' + label + '</text>';
       }
       // Axis labels.
-      svg += '<text x="' + (mL + pw / 2) + '" y="' + (H - 2) + '" fill="#6b7280" font-size="11" text-anchor="middle">Date</text>';
-      svg += '<text x="12" y="' + (mT + ph / 2) + '" fill="#6b7280" font-size="11" text-anchor="middle" transform="rotate(-90 12 ' + (mT + ph / 2) + ')">Price /1M tokens (log)</text>';
+      var yTitleX = (12 * textScale).toFixed(1);
+      svg += '<text x="' + (mL + pw / 2) + '" y="' + (H - 2) + '" fill="#9ca3af" font-size="' + labelSize + '" text-anchor="middle">Date</text>';
+      svg += '<text x="' + yTitleX + '" y="' + (mT + ph / 2) + '" fill="#9ca3af" font-size="' + labelSize + '" text-anchor="middle" transform="rotate(-90 ' + yTitleX + ' ' + (mT + ph / 2) + ')">Price /1M tokens (log)</text>';
 
       // One line per threshold. Segments broken across gaps (>1.5 days) and
       // dashed where either endpoint is a low-count day (<3 models).
       thresholds.forEach(function(key) {
         var col = trendColor(key);
         var pts = seriesByT[key];
-        var wide = key === '50' ? 2.6 : 1.8;   // emphasise the frontier-class line
+        var wide = (key === '50' ? 2.6 : 1.8) * lineScale;   // emphasise the frontier-class line
         for (var i = 1; i < pts.length; i++) {
           var a = pts[i - 1], b = pts[i];
           if (b.dn - a.dn > 1.5) continue;      // gap → break the line
@@ -838,15 +874,15 @@
         }
         pts.forEach(function(p) {
           svg += '<circle cx="' + sx(p.dn).toFixed(1) + '" cy="' + sy(p.v).toFixed(1) +
-            '" r="' + (p.count < 3 ? 1.6 : 2.4) + '" fill="' + col + '" fill-opacity="' + (p.count < 3 ? 0.4 : 0.95) + '">' +
+            '" r="' + ((p.count < 3 ? 1.6 : 2.4) * lineScale).toFixed(1) + '" fill="' + col + '" fill-opacity="' + (p.count < 3 ? 0.4 : 0.95) + '">' +
             '<title>≥' + key + ' · ' + new Date(p.dn * 86400000).toISOString().slice(0, 10) + '\n' +
             fmtPrice(p.v) + ' · ' + p.count + ' model' + (p.count === 1 ? '' : 's') + '</title></circle>';
         });
         // Legend entry at the line's last point (right margin).
         if (pts.length) {
           var last = pts[pts.length - 1];
-          var ly = Math.min(Math.max(sy(last.v), mT + 8), mT + ph - 4);
-          svg += '<text x="' + (mL + pw + 6) + '" y="' + (ly + 3).toFixed(1) + '" fill="' + col + '" font-size="10" font-weight="600">≥' + key + '</text>';
+          var ly = Math.min(Math.max(sy(last.v), mT + 8 * textScale), mT + ph - 4);
+          svg += '<text x="' + (mL + pw + 6) + '" y="' + (ly + 3 * textScale).toFixed(1) + '" fill="' + col + '" font-size="' + tickSize + '" font-weight="600">≥' + key + '</text>';
         }
       });
 
@@ -1448,11 +1484,7 @@
       sel.disabled = true;
       sel.value = dateVal;
 
-      fetch(url)
-        .then(function(r) {
-          if (!r.ok) throw new Error('Not found');
-          return r.json();
-        })
+      fetchJson(url)
         .then(function(data) {
           renderPage(data);
           sel.disabled = false;
@@ -1461,32 +1493,66 @@
           console.error('Failed to load', url, err);
           sel.disabled = false;
           if (dateVal !== 'latest') {
-            alert('Could not load data for ' + dateVal);
+            showLoadError('Couldn\'t load the ' + dateVal + ' snapshot (' + describeLoadError(err) + '). Showing the latest data instead.',
+              function() { loadData(dateVal); });
             sel.value = 'latest';
             loadData('latest');
+          } else {
+            showLoadError('Couldn\'t load the latest data (' + describeLoadError(err) + ').', function() { loadData('latest'); });
           }
         });
     }
 
+    function fetchJson(url) {
+      return fetch(url).then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      });
+    }
+
+    function describeLoadError(err) {
+      if (err && /^HTTP \d+$/.test(err.message)) return err.message;
+      if (err instanceof SyntaxError) return 'the file is malformed';
+      return 'network error';
+    }
+
+    function showLoadError(message, retry) {
+      document.getElementById('load-error-text').textContent = message;
+      document.getElementById('load-error-retry').onclick = function() {
+        hideLoadError();
+        retry();
+      };
+      document.getElementById('load-error').classList.remove('hidden');
+    }
+
+    function hideLoadError() {
+      document.getElementById('load-error').classList.add('hidden');
+    }
+
     document.getElementById('date-selector').addEventListener('change', function() {
+      hideLoadError();
       loadData(this.value);
     });
 
     // ── Initial load ────────────────────────────────────────────────────
-    Promise.all([
-      fetch('data/latest.json').then(function(r) { return r.json(); }),
-      fetch('archive/manifest.json').then(function(r) { return r.ok ? r.json() : { dates: [] }; }).catch(function() { return { dates: [] }; }),
-      fetch('data/timeseries.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; })
-    ]).then(function(results) {
-      var data = results[0];
-      var manifest = results[1];
-      trends = results[2];   // may be null (old deploy / first run) → trends UI hides
-      buildDateSelector(manifest);
-      renderPage(data);
-    }).catch(function(err) {
-      console.error('Failed to load initial data', err);
-      document.getElementById('table-body').innerHTML = '<tr><td colspan="9" class="px-4 py-10 text-center text-gray-400">Failed to load data. Please try again later.</td></tr>';
-    });
+    function loadInitialData() {
+      Promise.all([
+        fetchJson('data/latest.json'),
+        fetch('archive/manifest.json').then(function(r) { return r.ok ? r.json() : { dates: [] }; }).catch(function() { return { dates: [] }; }),
+        fetch('data/timeseries.json').then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; })
+      ]).then(function(results) {
+        var data = results[0];
+        var manifest = results[1];
+        trends = results[2];   // may be null (old deploy / first run) → trends UI hides
+        buildDateSelector(manifest);
+        renderPage(data);
+      }).catch(function(err) {
+        console.error('Failed to load initial data', err);
+        showLoadError('Couldn\'t load model data (' + describeLoadError(err) + '). Check your connection and try again.', loadInitialData);
+        document.getElementById('table-body').innerHTML = '<tr><td colspan="99" class="px-4 py-10 text-center text-gray-400">No model data loaded.</td></tr>';
+      });
+    }
+    loadInitialData();
 
     // ── SORT + TIER FILTER (extracted from IIFE) ─────────────────────────
     function initTableInteractions() {
@@ -1738,7 +1804,7 @@
       title.target = '_blank';
       title.rel = 'noopener noreferrer nofollow';
       card.appendChild(title);
-      if (item.summary) card.appendChild(makeElement('p', 'text-sm text-gray-400 leading-relaxed break-words', item.summary));
+      if (item.summary) card.appendChild(makeElement('p', 'text-sm text-gray-400 leading-relaxed break-words text-pretty', item.summary));
 
       var meta = makeElement('div', 'flex flex-wrap items-center gap-2 text-xs mt-auto pt-1');
       if (item.obtain) {
@@ -1746,9 +1812,9 @@
         meta.appendChild(makeElement('span', 'px-2 py-0.5 rounded-full ' + obtainClass, FREEBIE_OBTAIN_LABELS[item.obtain] || item.obtain));
       }
       if (item.category) meta.appendChild(makeElement('span', 'px-2 py-0.5 rounded-full bg-gray-800 text-gray-300', item.category));
-      if (item.source) meta.appendChild(makeElement('span', 'text-gray-500', item.source));
+      if (item.source) meta.appendChild(makeElement('span', 'text-gray-400', item.source));
       var published = formatFreebieDate(item.published_at);
-      if (published) meta.appendChild(makeElement('span', 'text-gray-500', published));
+      if (published) meta.appendChild(makeElement('span', 'text-gray-400', published));
       var expires = formatFreebieDate(item.expires_at);
       if (expires) meta.appendChild(makeElement('span', 'text-rose-400', 'expires ' + expires));
       card.appendChild(meta);
@@ -1765,8 +1831,10 @@
       Object.keys(counts).forEach(function(category) {
         var active = category === freebiesCategory;
         var button = makeElement('button',
-          'px-3 py-1 rounded-full transition-colors ' + (active ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-400 hover:text-gray-200'),
+          'freebie-filter px-3 py-1 rounded-full transition-colors ' + (active ? 'bg-indigo-600 text-white' : 'bg-gray-800 text-gray-300 hover:text-gray-100'),
           category + ' (' + counts[category] + ')');
+        button.type = 'button';
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
         button.addEventListener('click', function() {
           freebiesCategory = category;
           renderFreebies();
@@ -1787,7 +1855,7 @@
       });
       list.replaceChildren();
       if (!visible.length) {
-        list.appendChild(makeElement('p', 'text-sm text-gray-500', 'No free credits listed right now.'));
+        list.appendChild(makeElement('p', 'text-sm text-gray-400', 'No free credits listed right now.'));
         return;
       }
       visible.forEach(function(item) { list.appendChild(buildFreebieCard(item)); });
@@ -1807,7 +1875,7 @@
         .catch(function(err) {
           console.error('Failed to load freebies', err);
           var list = document.getElementById('freebies-list');
-          list.replaceChildren(makeElement('p', 'text-sm text-gray-500', 'Free credits data is unavailable right now.'));
+          list.replaceChildren(makeElement('p', 'text-sm text-gray-400', 'Free credits data is unavailable right now.'));
         });
     }
 
@@ -1827,6 +1895,7 @@
         button.classList.toggle('text-gray-400', !active);
       });
       if (showFreebies) loadFreebies();
+      else redrawCharts();
     }
 
     document.querySelectorAll('.page-tab').forEach(function(button) {
