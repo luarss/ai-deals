@@ -31,7 +31,7 @@ AI Deal Tracker publishes a daily leaderboard of the best-value AI models. Succe
 
 ## Capabilities and Constraints
 
-- Views: Artificial Analysis, Arena AI, and OpenRouter source toggles. Also tier chips, a minimum-intelligence slider (defaulting to Q3), a sortable All Models table, intelligence bands (`<25 / 25–39 / ≥40`, with 50 as the frontier-class trend line), a frontier chart, trend charts, and the changelog headline.
+- Views: Artificial Analysis and Arena AI toggles (OpenRouter feeds price fallback and uptime, not a separate view), plus a Free AI Credits tab. Also tier chips, a minimum-intelligence slider (defaulting to Q3), a sortable All Models table, intelligence bands (`<25 / 25–39 / ≥40`, with 50 as the frontier-class trend line), a frontier chart, trend charts, and the changelog headline.
 - Scoring constants live in one place: `src/bands.py` holds the thresholds, and `src/pricing.py::effective_price` returns the raw price. `PRICE_FLOOR` applies only inside scoring, never to displayed or trended prices.
 - **Stay static and free:** the output is a single generated HTML page on GitHub Pages, with no backend and no paid hosting.
 - **No data fabrication:** show only sourced numbers. Missing data stays visibly missing on the page. Neutral imputation is allowed inside scoring, but never in display.

@@ -1,0 +1,26 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "templates/index.html"
+        ],
+        "createdAt": "2026-11-18T06:44:24.707Z",
+        "reason": "Claude triage: static scan cannot resolve Tailwind CDN classes; browser-computed h1 24px vs body 16px, hero h2/h3 30-36px (critique 2026-11-18 overlay found no flat-type-hierarchy)"
+      },
+      {
+        "rule": "flat-type-hierarchy",
+        "value": "*",
+        "files": [
+          "docs/index.html"
+        ],
+        "createdAt": "2026-11-18T06:44:24.740Z",
+        "reason": "Claude triage: static scan cannot resolve Tailwind CDN classes; browser-computed h1 24px vs body 16px, hero h2/h3 30-36px (critique 2026-11-18 overlay found no flat-type-hierarchy)"
+      }
+    ]
+  }
+}
