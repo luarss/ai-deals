@@ -20,9 +20,9 @@
   </script>
   <style>
     th.sortable { user-select: none; }
-    th.sortable::after { content: ' ⇅'; opacity: 0.3; font-size: 0.7em; }
-    th.sort-asc::after  { content: ' ▲'; opacity: 1; }
-    th.sort-desc::after { content: ' ▼'; opacity: 1; }
+    th.sortable .sort-btn::after { content: ' ⇅'; opacity: 0.3; font-size: 0.7em; }
+    th.sort-asc .sort-btn::after  { content: ' ▲'; opacity: 1; }
+    th.sort-desc .sort-btn::after { content: ' ▼'; opacity: 1; }
 
     .tier-chip, .intel-preset { cursor: pointer; transition: all 0.15s ease; }
     .tier-chip.active, .intel-preset.active { background-color: #4f46e5; border-color: #6366f1; color: #fff; }
@@ -61,6 +61,15 @@
     }
 
     thead th { position: sticky; top: 0; z-index: 10; }
+    #model-table th:first-child,
+    #model-table td:first-child { position: sticky; left: 0; }
+    @media (max-width: 1279px) {
+      #model-table th:first-child,
+      #model-table td:first-child { box-shadow: inset -1px 0 0 #1f2937; }
+    }
+    #model-table th:first-child { z-index: 20; background-color: #111827; }
+    #model-table td:first-child { z-index: 5; background-color: #030712; }
+    #model-table tbody tr:hover td:first-child { background-color: #0a0d22; }
   </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen font-sans antialiased">
@@ -213,10 +222,10 @@
         <button id="clear-filters" type="button" class="text-indigo-300 hover:text-indigo-200 underline underline-offset-2" hidden>Clear filters</button>
         <span class="text-gray-500">· Click column headers to sort</span>
       </div>
-      <p class="text-xs text-gray-600 mb-2 sm:hidden">← scroll →</p>
+      <p id="table-scroll-hint" class="text-xs text-gray-400 mb-2" hidden>← scroll for more columns →</p>
 
-      <div class="overflow-x-auto rounded-xl border border-gray-800">
-        <table id="model-table" class="w-full text-sm border-collapse table-fixed">
+      <div id="table-scroll" class="overflow-x-auto rounded-xl border border-gray-800">
+        <table id="model-table" class="w-full text-sm border-collapse table-auto xl:table-fixed">
           <thead id="table-head" class="bg-gray-900 text-gray-400 text-xs uppercase"></thead>
           <tbody id="table-body" class="divide-y divide-gray-800/60"></tbody>
         </table>
@@ -314,6 +323,14 @@
       if (v >= 99) return 'text-green-400';
       if (v >= 95) return 'text-yellow-400';
       return 'text-red-400';
+    }
+
+    function uptimeCell(v) {
+      var label = '';
+      if (v != null && v < 95) label = 'low';
+      else if (v != null && v < 99) label = 'fair';
+      var tag = label ? '<span class="ml-1 font-sans text-[10px] uppercase tracking-wide">' + label + '</span>' : '';
+      return '<td class="px-4 py-3 text-right font-mono whitespace-nowrap ' + uptimeClass(v) + '">' + fmtUptime(v) + tag + '</td>';
     }
 
     // ── State ────────────────────────────────────────────────────────────
@@ -886,37 +903,49 @@
       var cols;
       if (view === 'arena') {
         cols = [
-          ['name', 'string', 'Model', 'text-left', 'w-[24%]'],
-          ['arena_elo', 'number', 'Arena Elo', 'text-right', 'w-[9%]'],
-          ['price', 'number', 'Price /1M', 'text-right', 'w-[10%]'],
-          ['arena_value', 'number', 'Arena Value', 'text-right', 'w-[11%]'],
-          ['arena_code', 'number', 'Arena Code', 'text-right', 'w-[10%]'],
-          ['speed', 'number', 'TPS', 'text-right', 'w-[9%]'],
-          ['ctx', 'number', 'Context', 'text-right', 'w-[7%]'],
-          ['arena_deal', 'number', 'Arena Deal ↓', 'text-right', 'w-[9%]'],
-          ['uptime', 'number', 'Uptime', 'text-right', 'w-[9%]']
+          ['name', 'string', 'Model', 'text-left', 'xl:w-[24%]'],
+          ['arena_elo', 'number', 'Arena Elo', 'text-right', 'xl:w-[9%]'],
+          ['price', 'number', 'Price /1M', 'text-right', 'xl:w-[10%]'],
+          ['arena_value', 'number', 'Arena Value', 'text-right', 'xl:w-[11%]'],
+          ['arena_code', 'number', 'Arena Code', 'text-right', 'xl:w-[10%]'],
+          ['speed', 'number', 'TPS', 'text-right', 'xl:w-[9%]'],
+          ['ctx', 'number', 'Context', 'text-right', 'xl:w-[7%]'],
+          ['arena_deal', 'number', 'Arena Deal ↓', 'text-right', 'xl:w-[9%]'],
+          ['uptime', 'number', 'Uptime', 'text-right', 'xl:w-[9%]']
         ];
       } else {
         cols = [
-          ['name', 'string', 'Model', 'text-left', 'w-[24%]'],
-          ['intel', 'number', 'Intelligence', 'text-right', 'w-[10%]'],
-          ['price', 'number', 'Price /1M', 'text-right', 'w-[11%]'],
-          ['value', 'number', 'Value Score', 'text-right', 'w-[11%]'],
-          ['coding', 'number', 'Coding', 'text-right', 'w-[8%]'],
-          ['speed', 'number', 'TPS', 'text-right', 'w-[9%]'],
-          ['ctx', 'number', 'Context', 'text-right', 'w-[7%]'],
-          ['deal', 'number', 'Deal Score ↓', 'text-right', 'w-[9%]'],
-          ['uptime', 'number', 'Uptime', 'text-right', 'w-[9%]']
+          ['name', 'string', 'Model', 'text-left', 'xl:w-[24%]'],
+          ['intel', 'number', 'Intelligence', 'text-right', 'xl:w-[10%]'],
+          ['price', 'number', 'Price /1M', 'text-right', 'xl:w-[11%]'],
+          ['value', 'number', 'Value Score', 'text-right', 'xl:w-[11%]'],
+          ['coding', 'number', 'Coding', 'text-right', 'xl:w-[8%]'],
+          ['speed', 'number', 'TPS', 'text-right', 'xl:w-[9%]'],
+          ['ctx', 'number', 'Context', 'text-right', 'xl:w-[7%]'],
+          ['deal', 'number', 'Deal Score ↓', 'text-right', 'xl:w-[9%]'],
+          ['uptime', 'number', 'Uptime', 'text-right', 'xl:w-[9%]']
         ];
       }
       var html = '<tr>';
       cols.forEach(function(c) {
-        html += '<th class="sortable px-4 py-3 whitespace-nowrap cursor-pointer ' + c[3] + ' ' + c[4] + '" data-col="' + c[0] + '" data-type="' + c[1] + '">' + c[2] + '</th>';
+        html += '<th class="sortable p-0 whitespace-nowrap ' + c[3] + ' ' + c[4] + '" data-col="' + c[0] + '" data-type="' + c[1] + '">';
+        html += '<button type="button" class="sort-btn w-full min-h-11 px-4 py-3 uppercase whitespace-nowrap cursor-pointer hover:text-gray-200 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-400 ' + c[3] + '">' + c[2] + '</button></th>';
       });
       html += '</tr>';
       document.getElementById('table-head').innerHTML = html;
       return cols.length;
     }
+
+    (function watchTableOverflow() {
+      var scroller = document.getElementById('table-scroll');
+      var hint = document.getElementById('table-scroll-hint');
+      if (!scroller || !hint || !window.ResizeObserver) return;
+      var observer = new ResizeObserver(function() {
+        hint.hidden = scroller.scrollWidth <= scroller.clientWidth + 1;
+      });
+      observer.observe(scroller);
+      observer.observe(document.getElementById('model-table'));
+    })();
 
     function renderTable(models) {
       var isArena = currentView === 'arena';
@@ -949,8 +978,8 @@
 
         // Column: Model
         html += '<td class="px-4 py-3 font-medium text-gray-100">';
-        html += '<div class="flex items-center gap-1 flex-wrap">';
-        html += '<span class="truncate">' + escapeHtml(m.name) + '</span>';
+        html += '<div class="flex items-center gap-1 flex-wrap w-32 sm:w-44 xl:w-auto">';
+        html += '<span class="break-words min-w-0 xl:truncate">' + escapeHtml(m.name) + '</span>';
         if (m.creator) html += '<span class="text-gray-500 text-xs shrink-0">· ' + escapeHtml(m.creator) + '</span>';
         // Modality chips — only for non-text modalities
         if (m.input_modalities) {
@@ -992,7 +1021,7 @@
           // Arena Deal
           html += '<td class="px-4 py-3 text-right font-mono font-semibold ' + dealClass + '">' + (m.arena_composite_score != null ? m.arena_composite_score.toFixed(2) : '—') + '</td>';
           // Uptime
-          html += '<td class="px-4 py-3 text-right font-mono ' + uptimeClass(m.uptime_30m) + '">' + fmtUptime(m.uptime_30m) + '</td>';
+          html += uptimeCell(m.uptime_30m);
         } else {
           // AA view (existing columns)
           var valueClass = 'text-gray-300';
@@ -1006,7 +1035,7 @@
           html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtSpeed(m.output_speed_tps) + '</td>';
           html += '<td class="px-4 py-3 text-right font-mono text-gray-300">' + fmtContext(m.context_window_k) + '</td>';
           html += '<td class="px-4 py-3 text-right font-mono font-semibold ' + dealClass + '">' + (m.composite_deal_score != null ? m.composite_deal_score.toFixed(2) : '—') + '</td>';
-          html += '<td class="px-4 py-3 text-right font-mono ' + uptimeClass(m.uptime_30m) + '">' + fmtUptime(m.uptime_30m) + '</td>';
+          html += uptimeCell(m.uptime_30m);
         }
         html += '</tr>';
       });
@@ -1591,13 +1620,17 @@
 
         table.querySelectorAll('th.sortable').forEach(function(th) {
           th.classList.remove('sort-asc', 'sort-desc');
+          th.removeAttribute('aria-sort');
         });
         var activeHeader = table.querySelector('th[data-col="' + col + '"]');
-        if (activeHeader) activeHeader.classList.add(ascending ? 'sort-asc' : 'sort-desc');
+        if (activeHeader) {
+          activeHeader.classList.add(ascending ? 'sort-asc' : 'sort-desc');
+          activeHeader.setAttribute('aria-sort', ascending ? 'ascending' : 'descending');
+        }
       }
 
       table.querySelectorAll('th.sortable').forEach(function(th) {
-        th.addEventListener('click', function() {
+        th.querySelector('.sort-btn').addEventListener('click', function() {
           sortTable(th.dataset.col, th.dataset.type || 'string');
         });
       });
