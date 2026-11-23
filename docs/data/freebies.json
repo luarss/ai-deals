@@ -1,18 +1,7 @@
 {
- "generated_at": "2026-11-22 09:43 UTC",
+ "generated_at": "2026-11-23 10:43 UTC",
  "source": "https://github.com/ZiChuanLan/freebie-radar",
  "items": [
-  {
-   "title": "（目前还有效的 2 个机器人）免费获取muse 账号和 token 机器人，目前还有效",
-   "summary": "muse获取免费账号和token机器人，目前还有效https://t.me/TunVN_PreHub_bot?start=ref663593884https://t.me/TunVN_PreHub_bot?start=ref1424083043可以获得10亿MuseAIToken或者1个Muse账号。送的这个账号应",
-   "url": "https://www.nodeseek.com/post-1059245-1",
-   "category": "ai",
-   "obtain": "free",
-   "source": "rss-nodeseek",
-   "score": 91,
-   "published_at": "2026-11-17T01:50:48.000Z",
-   "expires_at": null
-  },
   {
    "title": "muse最新领取账号或30亿token",
    "summary": "muse最新领取一个10亿账号或30亿token，其他机器人基本实效了就这一个了。https://t.me/Ppurestorebot?start=rbnqsvf9z",
@@ -22,6 +11,17 @@
    "source": "rss-nodeseek",
    "score": 89,
    "published_at": "2026-11-20T04:12:17.000Z",
+   "expires_at": null
+  },
+  {
+   "title": "Qwen4-Max 限时免费使用",
+   "summary": "频道 页面显示的是今天结束， 但是是按美国时间算的，北京时间应该明天13点左右结束 5 个帖子 - 3 位参与者 阅读完整话题",
+   "url": "https://www.nodeloc.com/t/topic/119025",
+   "category": "ai",
+   "obtain": "free",
+   "source": "rss-nodeloc",
+   "score": 85,
+   "published_at": "2026-11-23T08:39:01.000Z",
    "expires_at": null
   },
   {
@@ -36,6 +36,17 @@
    "expires_at": null
   },
   {
+   "title": "赠送 Claude API key，$100",
+   "summary": "账号被封了但发现之前送的 $100 Credits 还在，不蹬白不蹬，今晚过期大家自取 ``` curl https://api.anthropic.com/v1/messages \\ --header \"x-api-key: [redacted]\" \\ --header \"anthropic-version:",
+   "url": "https://www.v2ex.com/t/1258959",
+   "category": "ai",
+   "obtain": "free",
+   "source": "v2ex-free",
+   "score": 83,
+   "published_at": "2026-11-22T14:37:01.000Z",
+   "expires_at": null
+  },
+  {
    "title": "小米竟然开始白送【AI 语音生成模型】全免费！！！！",
    "summary": "platform.xiaomimimo.com Xiaomi MiMo-V2.6 Series: 3 New Models Officially Released Flagship performance · Full modality · Built for professional workflows | Team Token Plan · Batch Inference (Batch API) now powered by V2.6 models. 3 个帖子 - 3 位参与者 阅读完整话题",
    "url": "https://linux.do/t/topic/3196561",
@@ -44,6 +55,17 @@
    "source": "linuxdo-welfare",
    "score": 83,
    "published_at": "2026-11-18T06:23:33.000Z",
+   "expires_at": null
+  },
+  {
+   "title": "2026.11.23 16:02 送点儿hy4flash福利 20Btoken 蹬完无(deepseek 5b已经被佬们蹬完了)",
+   "summary": "https://nbapi.moyuhut.top/v1 moodel-id: hy4flash 剧透 8 个帖子 - 7 位参与者 阅读完整话题",
+   "url": "https://linux.do/t/topic/3227463",
+   "category": "ai",
+   "obtain": "free",
+   "source": "linuxdo-welfare",
+   "score": 82,
+   "published_at": "2026-11-23T08:02:39.000Z",
    "expires_at": null
   },
   {
@@ -168,39 +190,6 @@
    "expires_at": null
   },
   {
-   "title": "卧槽！白嫖的号点了ultra链接直接领取成功了",
-   "summary": "卧槽！白嫖的号点了ultra链接直接领取成功了",
-   "url": "https://t.me/s/nodeseekc/1015106",
-   "category": "ai",
-   "obtain": "free",
-   "source": "tg-cn-deals",
-   "score": 80,
-   "published_at": "2026-11-17T14:38:17.000Z",
-   "expires_at": null
-  },
-  {
-   "title": "【分享贴】一个公益站1000$的额度，TG兑换码",
-   "summary": "【分享贴】一个公益站1000$的额度，TG兑换码",
-   "url": "https://t.me/s/nodeseekc/1013525",
-   "category": "ai",
-   "obtain": "free",
-   "source": "tg-cn-deals",
-   "score": 80,
-   "published_at": "2026-11-17T02:28:40.000Z",
-   "expires_at": null
-  },
-  {
-   "title": "一行命令白嫖27B大模型！HF 官方隐藏终端玩法，零配置无限用Qwen3.8-27B实测",
-   "summary": "点赞上千、收藏过千，内容就一句话： 打开终端，输入ssh https://chat.hf.co，直接白嫖Qwen/Qwen3.8-27B，不用下载、不用注册、不用Key。 很多人第一反应是“又是钓鱼/假消息”",
-   "url": "https://www.zhihu.com/pin/2092347493308805319",
-   "category": "ai",
-   "obtain": "free",
-   "source": "zhihu-search",
-   "score": 80,
-   "published_at": "2026-11-17T02:25:29.582Z",
-   "expires_at": null
-  },
-  {
    "title": "谷谷歌歌惊天大bug，ultra也能薅？!",
    "summary": "谷歌出了个bug，可以白嫖一年的gemini ultra #谷歌 (Google) #Gemini",
    "url": "https://www.zhihu.com/pin/2106351096281224818",
@@ -209,28 +198,6 @@
    "source": "zhihu-search",
    "score": 79,
    "published_at": "2026-11-18T04:33:06.665Z",
-   "expires_at": null
-  },
-  {
-   "title": "google 惊天大羊毛!!! 5x ultra 一年白嫖",
-   "summary": "google 惊天大羊毛!!! 5x ultra 一年白嫖",
-   "url": "https://t.me/s/nodeseekc/1015314",
-   "category": "ai",
-   "obtain": "conditional",
-   "source": "tg-cn-deals",
-   "score": 79,
-   "published_at": "2026-11-17T16:11:20.000Z",
-   "expires_at": null
-  },
-  {
-   "title": "免费15亿大肥鱼token",
-   "summary": "免费15亿大肥鱼token",
-   "url": "https://t.me/s/nodeseekc/1014218",
-   "category": "ai",
-   "obtain": "free",
-   "source": "tg-cn-deals",
-   "score": 79,
-   "published_at": "2026-11-17T07:35:10.000Z",
    "expires_at": null
   },
   {
@@ -289,14 +256,25 @@
    "expires_at": null
   },
   {
-   "title": "0元购 Google Ultra 12月 直+插件",
-   "summary": "plug.zip (156.4 KB) 如果发现只有一个月，请取消订阅即可12月 可以领gcp赠金先去用了，用一点赚一点 12个月20T https://tokenized.play.google.com/eacquire/multiline?authuser=0&ear=[null%2Cnull%2C[null%2Cnull%2C\"%2Fplans%3Fg1_last_touchpoint%3D37%26g1_landing_page%3D1%26otzr%3D1\"]%2Cnull%2C[\"[redacted]…",
-   "url": "https://linux.do/t/topic/3193067",
-   "category": "cloud",
+   "title": "[慢讯] 小程序成长计划可以领取10亿tokens,有效期6个月",
+   "summary": "",
+   "url": "https://www.nodeseek.com/post-1074403-1",
+   "category": "ai",
    "obtain": "conditional",
-   "source": "linuxdo-welfare",
-   "score": 76,
-   "published_at": "2026-11-17T14:21:31.000Z",
+   "source": "rss-nodeseek",
+   "score": 75,
+   "published_at": "2026-11-23T09:22:34.000Z",
+   "expires_at": null
+  },
+  {
+   "title": "WIRO STUDENT | 免费领 $200 API额度",
+   "summary": "有效期 12 个月 • 无需绑卡 大语言模型 ：Opus 5.5、GPT-6.2 Astra/Sol、Gemini 4 Neon 音视频与 3D ：Veo 3.1、Nano Banana 2、Seedance 2.5 + 音频/3D 生成 即插即用 ：兼容 OpenAI 接口（支持 Cursor & VS Code） 频道 领取步骤 注册账号 ：使用教育邮箱访问 Wiro Student 官网 发起申请 ：进入应用内点击 “Apply” 填写信息 ：提交学校、专业、年级及个人项目想法 审核发码 ：约 2 个工作日 内通过，即可兑换 $200 额度 2 个帖子 - 2 位参与者 阅读完整话题",
+   "url": "https://www.nodeloc.com/t/topic/119016",
+   "category": "ai",
+   "obtain": "conditional",
+   "source": "rss-nodeloc",
+   "score": 75,
+   "published_at": "2026-11-23T07:41:21.000Z",
    "expires_at": null
   },
   {
@@ -355,17 +333,6 @@
    "expires_at": null
   },
   {
-   "title": "Gemini 4 CARBON 免费用",
-   "summary": "𝗚𝗘𝗠𝗜𝗡𝗜 𝟰 𝗖𝗔𝗥𝗕𝗢𝗡 免费 仅在 Respan 上可用，限时 48 小时！ 主要功能与信息： 100 万 token 的超大上下文窗口（完美适用于大型代码库和项目） 完全兼容 Claude Code、Codex 和 Cursor IDE 100% 免费访问——无需信用卡或借记卡 即时 API 密钥——注册后即可立即生成您的密钥 立即尝试：platform.respan.ai 如何领取 前往下方平台链接并创建免费账户 从您的仪表板生成新的 API 密钥 将其连接到您喜欢的编程工具（Cursor / Claude Code）并享受吧！ 3 个帖子 - 3 位参与者 阅读完整话题",
-   "url": "https://linux.do/t/topic/3193261",
-   "category": "ai",
-   "obtain": "conditional",
-   "source": "linuxdo-welfare",
-   "score": 75,
-   "published_at": "2026-11-17T14:56:49.000Z",
-   "expires_at": null
-  },
-  {
    "title": "muse领取30亿",
    "summary": "领取30亿的机器人又有了，用我的邀请码进去可以领取30亿，也可以换账号，但是这个机器人的账号似乎不太行，换了一个刚进去就给我解绑了相当于死了，所以建议只换30亿token，我另一个帖子发的机器人的账号还可以，都可以打电话https://t.me/masktai_bot?start=6_8kh-gDDYtsObPx",
    "url": "https://www.nodeseek.com/post-1067255-1",
@@ -374,6 +341,17 @@
    "source": "rss-nodeseek",
    "score": 74,
    "published_at": "2026-11-20T03:11:02.000Z",
+   "expires_at": null
+  },
+  {
+   "title": "muse11.20最新领取账号/30亿token",
+   "summary": "最新可用的muse刷额度机器人，也可以选择领10亿token账号，这个机器人注册的账号还能打电话，应该不容易封，使用我的链接可以选择30亿token或者一个10亿新账号https://t.me/Ppurestorebot?start=rhfcd2yrs建议选择新账号",
+   "url": "https://www.nodeseek.com/post-1067070-1",
+   "category": "ai",
+   "obtain": "conditional",
+   "source": "rss-nodeseek",
+   "score": 74,
+   "published_at": "2026-11-20T02:06:29.000Z",
    "expires_at": null
   },
   {
@@ -451,28 +429,6 @@
    "source": "linuxdo-welfare",
    "score": 74,
    "published_at": "2026-11-18T01:03:30.000Z",
-   "expires_at": null
-  },
-  {
-   "title": "0元购google ultra",
-   "summary": "复制下面链接，挂美区IP【转自其他群，非原创】 https://tokenized.play.google.com/eacquire/multiline?authuser=0&ear=[null%2Cnull%2C[null%2Cnull%2C\"%2Fplans%3Fg1_last_touchpoint%3D37%26g1_landing_page%3D1%26otzr%3D1\"]%2Cnull%2C[\"[redacted]…",
-   "url": "https://linux.do/t/topic/3192941",
-   "category": "ai",
-   "obtain": "conditional",
-   "source": "linuxdo-welfare",
-   "score": 74,
-   "published_at": "2026-11-17T13:56:16.000Z",
-   "expires_at": null
-  },
-  {
-   "title": "全网 AI 产品免费权益清单（截至 2026.11.17）",
-   "summary": "最近一两天国内 AI 的免费权益变动挺集中：腾讯把新出的 Hy4 flash 直接丢进 WorkBuddy 客户端免费用到月底，阶跃的语音限免今天中午就收，腾讯云几档最便宜的 DeepSeek 昨天也下架了。下面按\"新上的 → 今明关窗 → 还在领的\"顺...",
-   "url": "https://post.smzdm.com/p/ae656n3q",
-   "category": "ai",
-   "obtain": "conditional",
-   "source": "rss-smzdm",
-   "score": 74,
-   "published_at": "2026-11-17T08:05:46.000Z",
    "expires_at": null
   },
   {
@@ -564,17 +520,6 @@
    "expires_at": null
   },
   {
-   "title": "书生端砚免费token和免费开发机",
-   "summary": "每月免费1万墨点，5千算力点，无充值渠道，可根据需求申请提额 上海人工智能实验室提供 搜索书生端砚进去注册就行 16 个帖子 - 13 位参与者 阅读完整话题",
-   "url": "https://linux.do/t/topic/3189432",
-   "category": "ai",
-   "obtain": "conditional",
-   "source": "linuxdo-welfare",
-   "score": 73,
-   "published_at": "2026-11-17T03:41:58.000Z",
-   "expires_at": null
-  },
-  {
    "title": "无损云音乐播放器 2.0 上线啦（免费播放下载无损音乐）",
    "summary": "无损音乐播放器主站 ： https://dl.74520.xyz 视频 / 图集无水印专版 ： https://dl.74520.xyz/video 福利说明 ：直接用 LINUX DO 或 GitHub 账号一键登录即可使用， 每日免费下载 100 首无损/高品歌曲 （同一首歌当天切换音质或重下不重复扣额度）！ 一、2.0 版本都有哪些好用的升级？ 1. 全新 iOS 液态毛玻璃（Liquid Glass）重做 + 发现广场 彻底砍掉了旧版占满半个屏幕的多行大文本框，改造成顶部流线型胶囊搜索栏 + 桌面左侧悬浮乐库栏 + 发现广场。 打开首页就能直接逛 QQ 音乐 & 网易云 精选乐库：…",
    "url": "https://linux.do/t/topic/3220799",
@@ -587,7 +532,7 @@
   },
   {
    "title": "教你免费领 300 元大模型额度",
-   "summary": "成一：越来越感觉用不起了==。 这篇文章分享一下可以每年免费领取300元token的方式。 这个方式是阿里云云工开物平台的高校支持活动",
+   "summary": "近期国内模型开始发力，Kimi K3 、Qwen 3.8 max正式版、DeepSeek V4 PRO正式版、GLM5.3陆续上线，而且性能强悍，都可以算上准Fable模型。但是连DeepSeek 这样的价格屠夫都开始涨价了，Token需求越来越大，越来越感觉用不起了==。 这篇文章分享一下可以每年免费领取300元token的方式。 这个方式是阿里云云工开物平台的高校支持活动。中国高校学生（专科、本科、硕士、博士、在职研究生等高等教育学籍在内的在校学生人群），持有学生认证期间，每年可领取一张300元无门槛优惠券，该券有效期一年，只要还没毕业并符合以上人群，每年都以可领取一张。 具体操作如下：…",
    "url": "https://zhuanlan.zhihu.com/p/2072036839033135258",
    "category": "ai",
    "obtain": "conditional",
@@ -630,28 +575,6 @@
    "expires_at": null
   },
   {
-   "title": "HY4截止了，腾讯云的白嫖又来了：这波一年",
-   "summary": "luoruowen：先说结论：这回是真的，我已经亲手领到了 我核对过原文，也亲手走了一遍领取流程。腾讯云 TokenHub",
-   "url": "https://zhuanlan.zhihu.com/p/2106170417778053420",
-   "category": "ai",
-   "obtain": "conditional",
-   "source": "zhihu-search",
-   "score": 72,
-   "published_at": "2026-11-17T16:29:11.211Z",
-   "expires_at": null
-  },
-  {
-   "title": "qoder国际版SOTA积分领取",
-   "summary": "SOTA专属积分4000.用于sonus模型，应该是昨天就开始了，到18号结束。 5 个帖子 - 5 位参与者 阅读完整话题",
-   "url": "https://linux.do/t/topic/3191341",
-   "category": "ai",
-   "obtain": "free",
-   "source": "linuxdo-welfare",
-   "score": 72,
-   "published_at": "2026-11-17T08:48:19.000Z",
-   "expires_at": null
-  },
-  {
    "title": "用 iPhone 丝滑远程控制 Mac：Ferry + Tailscale 配置指南",
    "summary": "试过不少远程桌面，Ferry 的体验确实惊喜——延迟很低、手机屏幕适配好、键盘和触控板手感也顺手，而且目前整套免费。虽然设置比商业软件多几步，但照着做并不复杂： 装组网：Mac 和 iPhone 分别安装 Tailscale 并登录同一账号。 开权限：Mac 打开「系统设置 → 通用 → 共享 → 屏幕共享」，点右侧 ⓘ 允许自己的 Mac 账户访问。 装软件：iPhone 下载 Ferry（首次打开记得授予本地网络权限）。 连设备：打开 Ferry 添加 Mac；局域网直接搜，异地连接选 Tailscale 里的 Mac IP（100.x 开头），用 Mac 账户登录。 测高刷：Mac 保…",
    "url": "https://linux.do/t/topic/3216116",
@@ -685,14 +608,25 @@
    "expires_at": null
   },
   {
-   "title": "gemini ultra20x 零元购一个月的教程",
-   "summary": "gemini ultra20x 零元购一个月的教程",
-   "url": "https://t.me/s/nodeseekc/1015178",
+   "title": "用亚马逊AWS Quick白嫖Claude Opus 5.5",
+   "summary": "亚马逊AWS Quick类似国内的workbuddy这种办公助手。 这里面可以白嫖Claude Opus 5.5，如果只是想体验下顶级模型，不想去折腾安装Claude，AWS Quick是一个不错的选择",
+   "url": "https://www.zhihu.com/pin/2108158079539926725",
    "category": "ai",
    "obtain": "conditional",
-   "source": "tg-cn-deals",
-   "score": 71,
-   "published_at": "2026-11-17T15:07:04.000Z",
+   "source": "zhihu-search",
+   "score": 70,
+   "published_at": "2026-11-23T04:32:03.123Z",
+   "expires_at": null
+  },
+  {
+   "title": "一行命令白嫖27B大模型！HF 官方隐藏终端玩法，零配置无限用Qwen3.8-27B实测",
+   "summary": "点赞上千、收藏过千，内容就一句话： 打开终端，输入ssh https://chat.hf.co，直接白嫖Qwen/Qwen3.8-27B，不用下载、不用注册、不用Key。 很多人第一反应是“又是钓鱼/假消息”",
+   "url": "https://www.zhihu.com/pin/2092347493308805319",
+   "category": "ai",
+   "obtain": "free",
+   "source": "zhihu-search",
+   "score": 70,
+   "published_at": "2026-11-22T11:26:54.937Z",
    "expires_at": null
   },
   {
@@ -729,6 +663,17 @@
    "expires_at": null
   },
   {
+   "title": "WorkBuddy用户看过来再次白嫖1000积分，新老用户都能获取",
+   "summary": "谦谦君子：QClaw 原来的积分照旧到期，不会因停服延长。补贴的积分你们每天领取的那个积分一样一个月就到期别忘了蹬",
+   "url": "https://zhuanlan.zhihu.com/p/2101380704529602094",
+   "category": "ai",
+   "obtain": "free",
+   "source": "zhihu-search",
+   "score": 70,
+   "published_at": "2026-11-20T06:04:50.859Z",
+   "expires_at": null
+  },
+  {
    "title": "免费的 VPS",
    "summary": "如图，好像资源不够了？ 地址 Altare Altare：属于任何人、在任何地方的智能体云 可通过 SSH 登录的免费 Linux 沙盒，以及 Web 应用、API、机器人、智能体和游戏服务器托管。免费起步，通过一次性升级按需扩展。 24 个帖子 - 19 位参与者 阅读完整话题",
    "url": "https://linux.do/t/topic/3209976",
@@ -748,17 +693,6 @@
    "source": "zhihu-search",
    "score": 70,
    "published_at": "2026-11-20T03:03:58.068Z",
-   "expires_at": null
-  },
-  {
-   "title": "还有哪些可以免费薅的大模型？",
-   "summary": "AI-Tokenmost：6、通义千问（阿里云百炼） 新用户有免费额度资源包，Qwen 系列部分档位永久免费。 额度这东西手慢无，活动窗口越...",
-   "url": "https://www.zhihu.com/question/2075709282545357801/answer/2104739647003935353",
-   "category": "ai",
-   "obtain": "conditional",
-   "source": "zhihu-search",
-   "score": 69,
-   "published_at": "2026-11-21T17:21:59.958Z",
    "expires_at": null
   },
   {
@@ -795,6 +729,17 @@
    "expires_at": null
   },
   {
+   "title": "2026 国内 AI 产品免费额度大盘点：一个账号不够，那就注册十个",
+   "summary": "AI 大模型遍地开花的今天，各家厂商为了抢用户，免费额度给得一个比一个狠。本文详细盘点了 DeepSeek、智谱 AI、阿里云百炼、百度文心、腾讯混元、Kimi、豆包/扣子、讯飞星火、零一万物、商汤日日新、硅基流动等 11 个平台的免费额度政策，并给出最大化白嫖的实用技巧。 AI 大模型遍地开花的今天，各家厂商为了抢用户，免费额度给得一个比一个狠。作为一个精打细算的 AI 用户（说白了就是想白嫖），我花了整整一周时间把国内主流 AI 平台的免费政策摸了个遍。 结论先放这儿： 如果你会合理搭配使用，每个月不花一分钱也能拥有相当充裕的 AI 算力。 下面就来一个个聊。 一、各平台免费额度详解 1…",
+   "url": "https://zhuanlan.zhihu.com/p/2037576284411274102",
+   "category": "ai",
+   "obtain": "conditional",
+   "source": "zhihu-search",
+   "score": 69,
+   "published_at": "2026-11-20T03:03:58.068Z",
+   "expires_at": null
+  },
+  {
    "title": "豆包又有免费 AI 额度了",
    "summary": "给大家分享一个可以免费薅羊毛的消息，豆包最近又推出了一系列免费福利。对于大部分普通用户来说，现在根本不用花钱，就能够使用到目前行业里顶尖的 Agent 能力。 我总结了一下目前的活动，发现好多人还不知道： 1、新用户可以直接领取 30 天免费会员，相当于白送一个月的体验套餐。 2、所有新老用户每天都可以签到领额度。 累计签到 30 天可以获得 8800 额度，比标准套餐一个月的 8400 额度还多，相当于又送了一个月的使用额度。 3、即便是已经付费订阅的用户，签到领取的额度也可以和原来的订阅额度叠加，而且会优先消耗免费额度。对于付费用户，这些额度还可以用来生成图片、视频，以及使用 Pro 模…",
    "url": "https://zhuanlan.zhihu.com/p/2100198020172333482",
@@ -814,17 +759,6 @@
    "source": "zhihu-search",
    "score": 69,
    "published_at": "2026-11-18T01:32:20.501Z",
-   "expires_at": null
-  },
-  {
-   "title": "kiro 万圣节黑客松领 4000 积分教程，免费可用 Opus 等模型",
-   "summary": "陈文茂：已经报名的参赛者，可以申请一次性 4000 免费 Kiro 积分。用这些积分，可以在 Kiro 里调用 Claude",
-   "url": "https://zhuanlan.zhihu.com/p/2104491442227901062",
-   "category": "ai",
-   "obtain": "conditional",
-   "source": "zhihu-search",
-   "score": 69,
-   "published_at": "2026-11-17T01:25:27.466Z",
    "expires_at": null
   },
   {
@@ -872,6 +806,17 @@
    "expires_at": null
   },
   {
+   "title": "三天狂送10w刀额度，送完截止",
+   "summary": "免费羊毛，novapis.com注册即送100刀，不参水不降智，注册后在活动中心领取，活动池总共10w刀，送完截止。 活动截止时间为24号 1 个帖子 - 1 位参与者 阅读完整话题",
+   "url": "https://linux.do/t/topic/3223008",
+   "category": "ai",
+   "obtain": "conditional",
+   "source": "linuxdo-welfare",
+   "score": 67,
+   "published_at": "2026-11-22T14:03:22.000Z",
+   "expires_at": null
+  },
+  {
    "title": "7 个近期免费获取muse 账号和 token 机器人，目前还有效",
    "summary": "https://t.me/NTA_AI_shop2_bot?start=ref_50556368https://t.me/sondevstorebot?start=ref_50556368https://t.me/masktai_bot?[redacted]://t.me/TRAE",
    "url": "https://www.nodeseek.com/post-1061858-1",
@@ -880,6 +825,17 @@
    "source": "rss-nodeseek",
    "score": 67,
    "published_at": "2026-11-17T22:59:57.000Z",
+   "expires_at": null
+  },
+  {
+   "title": "中国区1g流量+奥地利esim免费领（5积分）或1usd购买",
+   "summary": "也是在tg群看到的，满5积分免费换一个奥地利esim，或者1usdt购买一个esim，感兴趣的可以看下，https://t.me/roam_esim_bot?start=6037698915",
+   "url": "https://www.nodeseek.com/post-1072748-1",
+   "category": "cloud",
+   "obtain": "conditional",
+   "source": "rss-nodeseek",
+   "score": 66,
+   "published_at": "2026-11-22T14:44:20.000Z",
    "expires_at": null
   },
   {
@@ -938,6 +894,28 @@
    "expires_at": null
   },
   {
+   "title": "奥地利的免费esim，五积分可换",
+   "summary": "https://t.me/roam_esim_bot?start=8602042796",
+   "url": "https://www.nodeseek.com/post-1073084-1",
+   "category": "ai",
+   "obtain": "conditional",
+   "source": "rss-nodeseek",
+   "score": 65,
+   "published_at": "2026-11-22T19:41:05.000Z",
+   "expires_at": null
+  },
+  {
+   "title": "直播！从 0 开始白嫖 Cloudflare Workers Paid",
+   "summary": "直播！从 0 开始白嫖 Cloudflare Workers Paid",
+   "url": "https://t.me/s/nodeseekc/1025418",
+   "category": "cloud",
+   "obtain": "conditional",
+   "source": "tg-cn-deals",
+   "score": 65,
+   "published_at": "2026-11-22T14:58:43.000Z",
+   "expires_at": null
+  },
+  {
    "title": "云知声free tokenPlan",
    "summary": "5小时、周限额，免费一个月，领取时间截止到24点。 云知声AI，还不错，速度也够快，领取链接 云知声 Token Hub 云知声 Token Hub - AI 大模型 MaaS 平台 | 多模态模型 API 服务 云知声 Token Hub 提供文本、语音、视觉等多模态 AI 大模型 API 服务，支持语音识别、语音合成与声音克隆能力。开发者可快速接入生成式 AI 能力，构建智能应用、AI Agent 与企业级 AI 产品。 1 个帖子 - 1 位参与者 阅读完整话题",
    "url": "https://linux.do/t/topic/3210344",
@@ -993,14 +971,36 @@
    "expires_at": null
   },
   {
-   "title": "【Vomni】分享免费抠图，无水印不限次｜上新Claude Fable 5.2、Gemini 4 Carbon｜留 ID 送人民币3.5元额度",
-   "summary": "佬友们好，分享一个我们自己在用的免费抠图的网站 之前抠个图，不是要开会员，就是限分辨率、加水印。现在 Vomni 的无限画布里直接带免费抠图 ，电商商品图、头像、表情包、PPT 配图都能用。 Vomni 官网 三步抠图 注册登录后，左侧进入 智能体 → 无限画布 ，点 新建画布 把图片拖进画布，选中图片后点 编辑 点 抠图 ，等几秒就能拿到透明底 抠完还能接着玩 无限画布是节点式的工作流，抠好的图可以直接连到下一步： 换背景 ：连一个生图节点，把商品放进新场景 批量出电商图 ：配合「电商一键生图」智能体，一次生成多张主图 图生视频 ：连到 Kling V4 Flash，让静态图动起来 一张画…",
-   "url": "https://linux.do/t/topic/3188376",
+   "title": "还有哪些可以免费薅的大模型？",
+   "summary": "先说结论：TokenMost（ http:// tokenmost.com ）这个站专门盯各家 AI 平台的免费额度，每天人工核验、过期自动下架，我就是靠它薅的。下面是 2026-11 实测还活着的几家： 1、智谱清言（ http:// chatglm.cn ） GLM-4.7-Flash 长期免费，不用信用卡，日常问答写文案够用。 2、ZCode 客户端 智谱家 AI 编程工具，每个周末送 5 亿 tokens，免费账号直接领，我周末写代码全靠它。 3、Gemini（ http:// gemini.google.com ） 免费层近期缩水到约 20 次/天，聊胜于无，网页版和 API 都有…",
+   "url": "https://www.zhihu.com/question/2075709282545357801/answer/2104739647003935353",
+   "category": "ai",
+   "obtain": "conditional",
+   "source": "zhihu-search",
+   "score": 65,
+   "published_at": null,
+   "expires_at": null
+  },
+  {
+   "title": "佬友们， 我们的 Agent Harness 项目召集 alpha 内测用户啦～有咖啡券哦",
+   "summary": "RT，内测项目招募用户啦，参与项目体验并给出反馈就送咖啡券～～ 总招募名额 25 名，先到先得哈。 要求： 有 macos 26+ 版本的运行环境 平时使用 codex，pi，claude code 或者 opencode 中的任意一个 harness 就行，同时使用多个的更优 感兴趣参与的大佬可以在下方回复，我们的运营同学会主动联系的哈 5 个帖子 - 4 位参与者 阅读完整话题",
+   "url": "https://linux.do/t/topic/3225813",
+   "category": "opensource",
+   "obtain": "conditional",
+   "source": "linuxdo-develop",
+   "score": 64,
+   "published_at": "2026-11-23T04:17:12.000Z",
+   "expires_at": null
+  },
+  {
+   "title": "免费GPU和服务器焚决，提示词直接给muse即可薅",
+   "summary": "请帮我系统开通并配置一套免费白嫖资源组合，目标是搭建低成本 AI 算力 + 云电脑 + 节点环境。全程只用免费计划，不绑卡、不升级、不付费。 核心要求： 只用免费计划，绝不绑卡、不升级、不购买任何付费选项；每项先核对免费政策，已收费或要绑卡的直接跳过并报告 遇到登录、Google 授权、手机验证码、人脸识别、协议确认、密码输入时，立即停下来，把页面留给我接管，等我完成后再继续 不要读取、存储或泄露我的任何密码、验证码、支付信息 每完成一项，先实际验证可用（跑 nvidia-smi、跑小 Python 程序、生成测试图、输出节点链接），再进入下一项 全部完成后给我总结报告：每项状态、如何再次进…",
+   "url": "https://linux.do/t/topic/3223815",
    "category": "ai",
    "obtain": "conditional",
    "source": "linuxdo-welfare",
-   "score": 65,
-   "published_at": "2026-11-17T01:32:06.000Z",
+   "score": 64,
+   "published_at": "2026-11-22T17:06:28.000Z",
    "expires_at": null
   },
   {
@@ -1034,39 +1034,6 @@
    "source": "linuxdo-welfare",
    "score": 63,
    "published_at": "2026-11-19T07:30:16.000Z",
-   "expires_at": null
-  },
-  {
-   "title": "0元ultra GEMINI 上小号撸",
-   "summary": "0元ultra GEMINI 上小号撸",
-   "url": "https://t.me/s/nodeseekc/1015005",
-   "category": "ai",
-   "obtain": "conditional",
-   "source": "tg-cn-deals",
-   "score": 63,
-   "published_at": "2026-11-17T13:54:14.000Z",
-   "expires_at": null
-  },
-  {
-   "title": "华为云开发者积分佬们记得花",
-   "summary": "【平台升级与域名变更公告 】开发者成长中心新平台将于11月23日正式对外开放，届时平台域名将发生变更。旧平台将于 11月20日0点至11月23日0点 期间进行停服升级，期间将下线全部任务及积分兑换代金券库存。如有兑换需求，请您务必于 11月20日0点前 完成兑换；未兑换的剩余积分将自动迁移至新平台。感谢您的支持与理解！ 不确定更新后的新积分能否白嫖无门槛代金券续费机器了。 56 个帖子 - 35 位参与者 阅读完整话题",
-   "url": "https://linux.do/t/topic/3188869",
-   "category": "cloud",
-   "obtain": "conditional",
-   "source": "linuxdo-welfare",
-   "score": 63,
-   "published_at": "2026-11-17T02:27:53.000Z",
-   "expires_at": "2026-11-23T15:59:59.000Z"
-  },
-  {
-   "title": "mirasim拉新了，新用户即可领 $15 额度，有兴趣的可以试一下",
-   "summary": "通过我的链接注册 Mirasim，新用户即可领 $15 额度： 那边现在是一折gpt，5折claude，可以当羊毛充值和美元一样7：1充值就不要了 10 个帖子 - 6 位参与者 阅读完整话题",
-   "url": "https://www.nodeloc.com/t/topic/118250",
-   "category": "ai",
-   "obtain": "conditional",
-   "source": "rss-nodeloc",
-   "score": 62,
-   "published_at": "2026-11-17T13:11:30.000Z",
    "expires_at": null
   },
   {
@@ -1104,7 +1071,7 @@
   },
   {
    "title": "Workbuddy1500积分免费领！你不会还没领吧？",
-   "summary": "智汇风渔AI：不足之处是积分每日只给100，虽然可以定时领取WorkBuddy每日积分 | 还在手动领积分？你亏大了",
+   "summary": "大家好啊，最近的workbuddy是我们打工人必备的软件了，做方案、写代码、直接操作本地数据，完成日常工作，skill、助理、专家、连接器等功能一应俱全，不足之处是积分每日只给100，虽然可以定时领取 WorkBuddy每日积分 | 还在手动领积分？你亏大了 这就够了，不不不，继续挖掘，QClaw 将于 2026-12-24 正式停止服务。现在迁移数据到workbuddy就可以领取1000积分哦。 迁移方式有俩种： 一、使用QClaw进行迁移 提示词：请把我的 QClaw 资产「专家与对话记录、已安装的技能、定时任务」一键迁移到我的 WorkBuddy 账号。 二、使用workbuddy进行…",
    "url": "https://zhuanlan.zhihu.com/p/2096279914039220191",
    "category": "ai",
    "obtain": "conditional",
@@ -1169,14 +1136,14 @@
    "expires_at": null
   },
   {
-   "title": "每天白嫖 250 魔粒和 36 小时 GPU？魔搭免费额度实测盘点",
-   "summary": "hongwei.jiang：魔搭（ModelScope）大部分人对它的印象是\"下模型的地方\"。实际翻完官方文档， 它更像一个...",
-   "url": "https://zhuanlan.zhihu.com/p/2106135706305290432",
+   "title": "kiro 万圣节黑客松领 4000 积分教程，免费可用 Opus 等模型",
+   "summary": "陈文茂：已经报名的参赛者，可以申请一次性 4000 免费 Kiro 积分。用这些积分，可以在 Kiro 里调用 Claude",
+   "url": "https://zhuanlan.zhihu.com/p/2104491442227901062",
    "category": "ai",
    "obtain": "conditional",
    "source": "zhihu-search",
-   "score": 60,
-   "published_at": "2026-11-17T15:28:43.951Z",
+   "score": 59,
+   "published_at": "2026-11-22T11:26:54.937Z",
    "expires_at": null
   },
   {
@@ -1199,6 +1166,17 @@
    "source": "zhihu-search",
    "score": 59,
    "published_at": "2026-11-20T21:11:30.443Z",
+   "expires_at": null
+  },
+  {
+   "title": "WorkBuddy最全免费积分领取攻略来了！",
+   "summary": "万象AI实验室：就有人经常在社区的群里问：哪里有免费的积分可以薅？别急，今天，小编就给大家盘一盘，这免费的积分到底怎么找！ 今天就把可以免费领取的积分方式和渠道",
+   "url": "https://zhuanlan.zhihu.com/p/2091833274301683113",
+   "category": "ai",
+   "obtain": "conditional",
+   "source": "zhihu-search",
+   "score": 59,
+   "published_at": "2026-11-20T06:04:50.859Z",
    "expires_at": null
   },
   {
@@ -1235,17 +1213,6 @@
    "expires_at": null
   },
   {
-   "title": "【RelayRouter】腾讯 hy4-flash 首发接入｜1M 上下文｜新人留 ID 领 ¥3.5",
-   "summary": "各位佬友好，腾讯新模型 hy4-flash 已在 RelayRouter 上架，最低分组 比官方优惠 70% ，第一时间同步给大家 RelayRouter 官网 ｜ 模型广场 ｜ hy4-flash 模型页 新人福利：留 ID 领人民币 3.5 元体验额度 新注册的佬友，在本帖回复你的 RelayRouter 站内 ID ，即可领取 人民币 3.5 元体验额度 ，hy4-flash 上架当天就能拿来试 领取方式 ：回复 ID：你的站内ID 领取条件： 注册时间在 7 天以内 此前没有领取过新人福利 每个账号仅限领取一次 hy4-flash 是什么？ 腾讯自研的高性价比 MoE 多模态文本模型…",
-   "url": "https://linux.do/t/topic/3188671",
-   "category": "ai",
-   "obtain": "conditional",
-   "source": "linuxdo-welfare",
-   "score": 55,
-   "published_at": "2026-11-17T02:04:02.000Z",
-   "expires_at": null
-  },
-  {
    "title": "✅免费送✅195+热门地区✅静态住宅 $0.9｜✅纯净原生 IP｜✅动态轮换 $0.38｜AI 采集 / 社媒运营可用",
    "summary": "🎁ZooProxy免费送落地家宽住宅IP流量CDK，1亿IP池，新用户五折优惠，$0.38/GB,$0.9/IP！！注册，进入控制台找到cdk兑换即可邀请码：veexfwaif(五折优惠）注册即刻兑换：👉https://zooproxy.com/?kwd=LQ-DFPWLZ-TBYX-5Q7RRR8N-LBVB",
    "url": "https://www.deepflood.com/post-39338-1",
@@ -1265,6 +1232,28 @@
    "source": "linuxdo-welfare",
    "score": 50,
    "published_at": "2026-11-20T06:26:42.000Z",
+   "expires_at": null
+  },
+  {
+   "title": "微信官方白嫖：10 亿 Token",
+   "summary": "微信官方的「AI 小程序成长计划」10 亿 Token 12 月 31 日截止 免费云开发个人版环境 6 个月 报名路径 登录微信小程序后台 mp.weixin.qq.com → 左侧「行业能力」→「AI 小程序成长计划」→ 点「参与计划」，填个小程序介绍表单就行。 佬们开通以后套餐用量界面记得点击取消自动续费 78 个帖子 - 48 位参与者 阅读完整话题",
+   "url": "https://linux.do/t/topic/3227818",
+   "category": "ai",
+   "obtain": "conditional",
+   "source": "linuxdo-welfare",
+   "score": 49,
+   "published_at": "2026-11-23T08:44:47.000Z",
+   "expires_at": "2026-12-31T15:59:59.000Z"
+  },
+  {
+   "title": "🎁羊毛福利，全球IP代理 自选国家免费领流量",
+   "summary": "zooproxy全球IP代理—195+国家/城市级定位真实原生IP兼容HTTP/HTTPS/SOCKS5API一键集成，指纹浏览器直接接<0.5s延迟｜高并发7×24支持协助解决问题适配爬虫、社媒矩阵、跨境、网站测试、AI大流量三种套餐按任务选不浪费小量测试打五折📦动态住宅——低至$0.38/GB适合爬虫价",
+   "url": "https://www.deepflood.com/post-39336-1",
+   "category": "cloud",
+   "obtain": "conditional",
+   "source": "rss-deepflood",
+   "score": 49,
+   "published_at": "2026-11-19T02:55:26.000Z",
    "expires_at": null
   },
   {
@@ -1323,14 +1312,14 @@
    "expires_at": null
   },
   {
-   "title": "gpt爽蹬，注册送20，加每日签到",
-   "summary": "• 我的项目是免费使用，无收费（变相收费、赞助）部分： 是 • 我的帖子已经打上 公益推广 标签：是 •我的项目属于个人项目，与公司或商业机构无关： 是 • 我的项目不存在QQ、TG等群组引流：是 • 我的项目不存在非运营必要网站引流：是 • 我的项目不存在为他人推厂、AFF：是 • 我的项目无关联的商业项目：是 • 我的站点存在登录，并已接入 LINUX DOConnect： 是 • 我帖子内的项目介绍，AI生成、润色内容部分已截图发出：是 • 以上选择我承诺是永久有效的，接受社区和佬友监督：是 cdk.linux.do LINUX DO CDK Linux Do 社区 CDK 快速分享平…",
-   "url": "https://linux.do/t/topic/3191166",
+   "title": "全新公益api站 无付费（重新开放注册） 晚上加新模型和渠道负载均衡",
+   "summary": "本帖使用社区公益推广，符合推广要求。我申明并遵循社区要求的以下内容： 我的项目是免费使用的，无收费（变相收费、赞助）部分： 是 我的帖子已经打上 公益推广 标签： 是 我的项目属于个人项目，与公司或商业机构无关： 是 我的项目不存在QQ、TG等群组引流： 是 我的项目不存在非运营必要的网站引流： 是 我的项目不存在为他人推广、AFF： 是 我的项目无关联的商业项目： 是 我的站点存在登录，并已接入 LINUX DO Connect： 是 我帖子内的项目介绍，AI生成、润色内容部分已截图发出： 是 以上选择我承诺是永久有效的，接受社区和佬友监督： 是 青春版是否可以注册：是 刚来L站 做一个免…",
+   "url": "https://linux.do/t/topic/3223919",
    "category": "ai",
    "obtain": "conditional",
    "source": "linuxdo-welfare",
-   "score": 39,
-   "published_at": "2026-11-17T08:24:59.000Z",
+   "score": 38,
+   "published_at": "2026-11-22T18:18:58.000Z",
    "expires_at": null
   }
  ]
