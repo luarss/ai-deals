@@ -40,7 +40,11 @@ MAX_TITLE_LENGTH = 200
 MAX_SUMMARY_LENGTH = 300
 MAX_SHORT_FIELD_LENGTH = 40
 
-SECRET_PATTERN = re.compile(r"sk-[A-Za-z0-9_\-]{8,}|[A-Za-z0-9+/=_]{24,}")
+SECRET_PATTERN = re.compile(
+    r"\b(?:sk|ark)-[A-Za-z0-9_\-]{8,}"
+    r"|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}[A-Za-z0-9_\-]*"
+    r"|[A-Za-z0-9+/=_]{24,}"
+)
 ISO_TIMESTAMP_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}T[\d:.]+Z?$")
 SHORT_FIELD_PATTERN = re.compile(r"^[a-z0-9_\-]+$")
 

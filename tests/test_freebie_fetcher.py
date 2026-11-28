@@ -46,8 +46,18 @@ def test_redacts_api_keys_and_base64_tokens():
     assert redact_secrets(text) == "a [redacted] b [redacted] c"
 
 
+def test_redacts_volcengine_ark_keys_and_uuids():
+    fake_uuid = "1234abcd-" + "0000-4000-8000-" + "00000000beef"
+    text = f"API：ark-{fake_uuid}-12abc openai x {fake_uuid} y"
+    assert redact_secrets(text) == "API：[redacted] openai x [redacted] y"
+
+
 def test_keeps_hyphenated_slugs():
     assert redact_secrets("14729-global-hack-week-builders-week") == "14729-global-hack-week-builders-week"
+
+
+def test_keeps_words_ending_in_key_prefixes():
+    assert redact_secrets("spark-audio-model and task-runner-v2") == "spark-audio-model and task-runner-v2"
 
 
 def test_sanitize_keeps_only_whitelisted_fields():
